@@ -1,0 +1,21 @@
+{
+  "name": "823chan",
+  "version": "0.0.0",
+  "main": "app.mjs",
+  "repository": "https://github.com/ikuradon/823chan.git",
+  "author": "ikuradon",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node app.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "chrono-node": "^2.6.3",
+    "date-fns": "^2.30.0",
+    "dotenv": "^16.1.4",
+    "node-cron": "^3.0.2",
+    "nostr-tools": "^1.11.1",
+    "websocket-polyfill": "^0.0.3"
+  }
+}
