@@ -797,7 +797,7 @@ const main = async () => {
           continue;
         if (!command[1] && wFlag == true)
           continue;
-        wFlag = command[1](systemData, userData, relay, ev)
+        wFlag = command[2](systemData, userData, relay, ev)
       }
 
       if (!wFlag) cmdUnknown(systemData, userData, relay, ev)
