@@ -615,7 +615,7 @@ const main = async () => {
           if (systemData.statusTimer === undefined)
             systemData.statusTimer = 0;
 
-          const timerDuration = currUnixtime() - systemData.failedTimer;
+          const timerDuration = currUnixtime() - systemData.statusTimer;
 
           const COOLDOWN_TIMER = 5 * 60;
 
