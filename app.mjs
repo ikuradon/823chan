@@ -209,6 +209,8 @@ const cmdDiceMulti = (_systemData, _userData, relay, ev) => {
   const matchContentDice = ev.content.match(REGEX_DICE_MULTI);
   const diceCount = Number(matchContentDice[2]);
   const diceNum = Number(matchContentDice[3]);
+
+  let replyPost;
   console.log(diceCount + "D" + diceNum);
   if ((1 <= diceCount && diceCount <= 100) && (1 <= diceNum && diceNum <= 10000)) {
     let rollNum = 0;
@@ -218,12 +220,11 @@ const cmdDiceMulti = (_systemData, _userData, relay, ev) => {
       rollNum += rollNow;
       rollList[i] = rollNow;
     }
-    const replyPost = composeReplyPost(rollList.join("+") + "=" + rollNum + "が出ました", ev);
-    publishToRelay(relay, replyPost);
+    replyPost = composeReplyPost(rollList.join("+") + "=" + rollNum + "が出ました", ev);
   } else {
-    const replyPost = composeReplyPost("数えられない…", ev);
-    publishToRelay(relay, replyPost);
+    replyPost = composeReplyPost("数えられない…", ev);
   }
+  publishToRelay(relay, replyPost);
   return true;
 }
 
@@ -756,72 +757,72 @@ const main = async () => {
         wFlag = cmdPing(systemData, userData, relay, ev);
       }
 
-      const REGEX_DICE_MULTI = /(dice)\s(\d+)d(\d+)/i;
-      const REGEX_DICE_SINGLE = /(dice)/i
+      const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
+      const REGEX_DICE_SINGLE = /\b(dice)\b/i
       if (ev.content.match(REGEX_DICE_MULTI)) {
         wFlag = cmdDiceMulti(systemData, userData, relay, ev);
       } else if (ev.content.match(REGEX_DICE_SINGLE)) {
         wFlag = cmdDiceSingle(systemData, userData, relay, ev);
       }
 
-      const REGEX_REACTION = /(fav|ふぁぼ|ファボ|祝福|星)/i;
+      const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
       if (ev.content.match(REGEX_REACTION)) {
         wFlag = cmdFav(systemData, userData, relay, ev);
       }
 
-      const REGEX_COUNT = /(count|カウント)/i;
+      const REGEX_COUNT = /\b(count|カウント)\b/i;
       if (ev.content.match(REGEX_COUNT)) {
         wFlag = cmdCount(systemData, userData, relay, ev);
       }
 
-      const REGEX_LOGINBONUS = /(loginbonus|ログインボーナス|ログボ|ろぐぼ)/i;
+      const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
       if (ev.content.match(REGEX_LOGINBONUS)) {
         wFlag = cmdLoginbonus(systemData, userData, relay, ev);
       }
 
-      const REGEX_UNIXTIME = /(unixtime)/i;
+      const REGEX_UNIXTIME = /\b(unixtime)\b/i;
       if (ev.content.match(REGEX_UNIXTIME)) {
         wFlag = cmdUnixtime(systemData, userData, relay, ev);
       }
 
-      const REGEX_BLOCKTIME = /(blocktime)/i;
+      const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
       if (ev.content.match(REGEX_BLOCKTIME)) {
         wFlag = cmdBlocktime(systemData, userData, relay, ev);
       }
 
-      if (ev.content.match(/satconv\s(\d+)/gi)) {
+      if (ev.content.match(/\b(satconv)\s(\d+)\b/gi)) {
         wFlag = cmdSatConv(systemData, userData, relay, ev);
       }
 
-      if (ev.content.match(/jpyconv\s(\d+)/gi)) {
+      if (ev.content.match(/\b(jpyconv)\s(\d+)\b/gi)) {
         wFlag = cmdJpyConv(systemData, userData, relay, ev);
       }
 
-      if (ev.content.match(/usdconv\s(\d+)/gi)) {
+      if (ev.content.match(/\b(usdconv)\s(\d+)\b/gi)) {
         wFlag = cmdUsdConv(systemData, userData, relay, ev);
       }
 
-      const REGEX_REMIND = /(remind)\s(.*)/i;
+      const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
       if (ev.content.match(REGEX_REMIND)) {
         wFlag = cmdRemind(systemData, userData, relay, ev);
       }
 
-      const REGEX_INFO = /(info|情報)/i;
+      const REGEX_INFO = /\b(info|情報)\b/i;
       if (ev.content.match(REGEX_INFO)) {
         wFlag = cmdInfo(systemData, userData, relay, ev);
       }
 
-      const REGEX_STATUS = /(status|ステータス)/i;
+      const REGEX_STATUS = /\b(status|ステータス)\b/i;
       if (ev.content.match(REGEX_STATUS)) {
         wFlag = cmdStatus(systemData, userData, relay, ev);
       }
 
-      const REGEX_REBOOT = /(reboot|再起動)/i;
+      const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
       if (ev.content.match(REGEX_REBOOT)) {
         wFlag = cmdReboot(systemData, userData, relay, ev);
       }
 
-      const REGEX_HELP = /(help|ヘルプ)/i;
+      const REGEX_HELP = /\b(help|ヘルプ)\b/i;
       if (ev.content.match(REGEX_HELP)) {
         wFlag = cmdHelp(systemData, userData, relay, ev);
       }
