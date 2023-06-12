@@ -212,7 +212,7 @@ const cmdDiceMulti = (_systemData, _userData, relay, ev) => {
   console.log(diceCount + "D" + diceNum);
   if ((1 <= diceCount && diceCount <= 100) && (1 <= diceNum && diceNum <= 10000)) {
     let rollNum = 0;
-    let rollList = [];
+    const rollList = [];
     for (let i = 0; i < diceCount; i++) {
       const rollNow = Math.floor(Math.random() * diceNum) + 1;
       rollNum += rollNow;
