@@ -434,7 +434,6 @@ const cmdRemind = (systemData, _, relay, ev) => {
   const reminderList = systemData.reminderList || [];
 
   const reminderDateText = ev.content.match(REGEX_REMIND)[2];
-  console.log(":" + reminderDateText)
 
   const REGEX_REMIND_LIST = /^(list)$/i
   const REGEX_REMIND_DELETE = /^(del)\s(.*)$/i
