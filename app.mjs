@@ -642,6 +642,23 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
   return true;
 }
 
+const REGEX_PING = /ping/i;
+const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
+const REGEX_DICE_SINGLE = /\b(dice)\b/i
+const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
+const REGEX_COUNT = /\b(count|カウント)\b/i;
+const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
+const REGEX_UNIXTIME = /\b(unixtime)\b/i;
+const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
+const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/gi;
+const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/gi;
+const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/gi;
+const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
+const REGEX_INFO = /\b(info|情報)\b/i;
+const REGEX_STATUS = /\b(status|ステータス)\b/i;
+const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
+const REGEX_HELP = /\b(help|ヘルプ)\b/i;
+
 // メイン関数
 const main = async () => {
   const memoryData = loadMemory();
@@ -743,23 +760,6 @@ const main = async () => {
     const post = composePost("準備完了！\nduration: " + duration + "sec.");
     publishToRelay(relay, post);
   });
-
-  const REGEX_PING = /ping/i;
-  const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
-  const REGEX_DICE_SINGLE = /\b(dice)\b/i
-  const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
-  const REGEX_COUNT = /\b(count|カウント)\b/i;
-  const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
-  const REGEX_UNIXTIME = /\b(unixtime)\b/i;
-  const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
-  const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/gi;
-  const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/gi;
-  const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/gi;
-  const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
-  const REGEX_INFO = /\b(info|情報)\b/i;
-  const REGEX_STATUS = /\b(status|ステータス)\b/i;
-  const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
-  const REGEX_HELP = /\b(help|ヘルプ)\b/i;
 
   // 0: Regexp pattern
   // 1: flag to call function even though wFlag is true
