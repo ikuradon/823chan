@@ -718,7 +718,10 @@ const main = async () => {
 
           if (currUnixtime() - userData.failedTimer >= 60 * 5) {
             // 前回から5分経っているので処理する
-            const replyPost = composeReplyPost("知らない", ev);
+            const messageList = ["知らない", "わからない", "コマンド合ってる？"];
+            const messageFooterList = ["…", "！", ""];
+            const message = messageList[Math.floor(Math.random() * messageList.length)] + messageFooterList[Math.floor(Math.random() * messageFooterList.length)];
+            const replyPost = composeReplyPost(message, ev);
             publishToRelay(relay, replyPost);
           }
 
