@@ -782,7 +782,7 @@ const main = async () => {
       const REGEX_UNIXTIME = /(unixtime)/i;
       if (ev.content.match(REGEX_UNIXTIME)) {
         wFlag = cmdUnixtime(systemData, userData, relay, ev);
-      };
+      }
 
       const REGEX_BLOCKTIME = /(blocktime)/i;
       if (ev.content.match(REGEX_BLOCKTIME)) {
@@ -791,15 +791,15 @@ const main = async () => {
 
       if (ev.content.match(/satconv\s(\d+)/gi)) {
         wFlag = cmdSatConv(systemData, userData, relay, ev);
-      };
+      }
 
       if (ev.content.match(/jpyconv\s(\d+)/gi)) {
         wFlag = cmdJpyConv(systemData, userData, relay, ev);
-      };
+      }
 
       if (ev.content.match(/usdconv\s(\d+)/gi)) {
         wFlag = cmdUsdConv(systemData, userData, relay, ev);
-      };
+      }
 
       const REGEX_REMIND = /(remind)\s(.*)/i;
       if (ev.content.match(REGEX_REMIND)) {
