@@ -511,7 +511,7 @@ const main = async () => {
           if (systemData.currencyData.updateAt != undefined) {
             const usd = sat2btc(sat) * systemData.currencyData.btc2usd;
             const jpy = sat2btc(sat) * systemData.currencyData.btc2jpy;
-            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd kk:mm");
+            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
             const message = `丰${sat} = ￥${jpy} ＄${usd}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
             const replyPost = composeReplyPost(message, ev);
             publishToRelay(relay, replyPost);
@@ -526,7 +526,7 @@ const main = async () => {
           if (systemData.currencyData.updateAt != undefined) {
             const usd = jpy / systemData.currencyData.usd2jpy;
             const sat = btc2sat(jpy / systemData.currencyData.btc2jpy);
-            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd kk:mm");
+            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
             const message = `￥${jpy} = 丰${sat} ＄${usd}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
             const replyPost = composeReplyPost(message, ev);
             publishToRelay(relay, replyPost);
@@ -541,7 +541,7 @@ const main = async () => {
           if (systemData.currencyData.updateAt != undefined) {
             const jpy = usd * systemData.currencyData.usd2jpy;
             const sat = btc2sat(usd / systemData.currencyData.btc2usd);
-            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd kk:mm");
+            const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
             const message = `＄${usd} = 丰${sat} ￥${jpy}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
             const replyPost = composeReplyPost(message, ev);
             publishToRelay(relay, replyPost);
@@ -566,7 +566,7 @@ const main = async () => {
               message += "見つかりませんでした…";
             } else {
               filterdList.forEach(record => {
-                message += format(new Date(record.remindAt), "yyyy-MM-dd kk:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
+                message += format(new Date(record.remindAt), "yyyy-MM-dd HH:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
               });
             }
           } else if (reminderDateText.match(REGEX_REMIND_DELETE)) {
@@ -584,7 +584,7 @@ const main = async () => {
               };
               reminderList.push(record);
               systemData.reminderList = reminderList;
-              message = format(reminderDate, "yyyy-MM-dd kk:mm") + "になったらお知らせします！";
+              message = format(reminderDate, "yyyy-MM-dd HH:mm") + "になったらお知らせします！";
             } else {
               message = "正しく処理できませんでした…";
             }
