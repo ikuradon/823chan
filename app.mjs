@@ -765,7 +765,7 @@ const main = async () => {
   // 0: Regexp pattern
   // 1: flag to call function even though wFlag is true
   // 2: command function
-  let commands = [
+  const commands = [
     [REGEX_PING, true, cmdPing],
     [REGEX_DICE_MULTI, true, cmdDiceMulti],
     [REGEX_DICE_SINGLE, false, cmdDiceSingle],
