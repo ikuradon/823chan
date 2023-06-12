@@ -313,13 +313,13 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         }
 
-        if (ev.content.match(/dice\s(\d+)d(\d+)/gi)) {
+        if (ev.content.match(/(dice)\s(\d+)d(\d+)/gi)) {
           wFlag = true;
           console.log("発火(さいころ指定): " + ev.content);
 
-          const matchContentDice = ev.content.match(/(\d+)d(\d+)/gi);
-          const diceCount = Number(matchContentDice[0].match(/^(\d+)d(\d+)$/i)[1]);
-          const diceNum = Number(matchContentDice[0].match(/^(\d+)d(\d+)$/i)[2]);
+          const matchContentDice = ev.content.match(/(dice)\s(\d+)d(\d+)/i);
+          const diceCount = Number(matchContentDice[2]);
+          const diceNum = Number(matchContentDice[3]);
           console.log(diceCount + "D" + diceNum);
           if ((1 <= diceCount && diceCount <= 100) && (1 <= diceNum && diceNum <= 10000)) {
             let rollNum = 0;
