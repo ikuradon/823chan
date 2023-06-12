@@ -20,7 +20,7 @@ import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks } from 
 import * as chrono from "chrono-node";
 
 const currUnixtime = () => getUnixTime(new Date());
-const START_TIME = currUnixtime();
+const START_TIME = new Date();
 
 const BOT_PRIVATE_KEY_HEX = process.env.PRIVATE_KEY_HEX;
 const ADMIN_HEX = process.env.ADMIN_HEX;
@@ -292,8 +292,8 @@ const main = async () => {
 
   sub.on("eose", () => {
     console.log("****** EOSE ******");
-    const duration = currUnixtime() - START_TIME;
-    const post = composePost("準備完了！\nduration: " + duration);
+    const duration = (new Date() - START_TIME) / 1000;
+    const post = composePost("準備完了！\nduration: " + duration + "sec.");
     publishToRelay(relay, post);
   });
 
