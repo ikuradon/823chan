@@ -482,6 +482,19 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         };
 
+        if (ev.content.match(/(blocktime)/gi)) {
+          wFlag = true;
+          console.log("発火(blocktime): " + ev.content);
+
+          axios.get("https://mempool.space/api/blocks/tip/height").then(response => {
+            const replyPost = composeReplyPost(`現在のblocktimeは${response.data}です。`, ev);
+            publishToRelay(relay, replyPost);
+          }).catch(error => {
+            const replyPost = composeReplyPost(`取得に失敗しました…`, ev);
+            publishToRelay(relay, replyPost);
+          });
+        }
+
         if (ev.content.match(/satconv\s(\d+)/gi)) {
           wFlag = true;
           console.log("発火(satconv): " + ev.content);
@@ -681,6 +694,7 @@ const main = async () => {
           let message = "";
           message += "こんにちは！やぶみちゃんです！\n";
           message += "現在は出来ることは以下の通りです！\n";
+          message += "(blocktime) : 現在のブロックタイムを表示します！\n";
           message += "(count|カウント) : カウントを呼び出した回数を表示します！\n";
           message += "(dice) [ダイスの数と面の数] : さいころを振ります！\n";
           message += "(fav|ふぁぼ|ファボ|祝福|星) : リアクションを送信します！\n";
