@@ -237,7 +237,7 @@ const cmdDiceSingle = (_systemData, _userData, relay, ev) => {
   return true;
 }
 
-const cmdFav = (_systemData, _userData, relay, ev) => {
+const cmdReaction = (_systemData, _userData, relay, ev) => {
   console.log("発火(星投げ)");
 
   const aaList = [
@@ -638,6 +638,7 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
     const replyPost = composeReplyPost(message, ev);
     publishToRelay(relay, replyPost);
   }
+  userData.failedTimer = currUnixtime();
   return true;
 }
 
@@ -743,6 +744,41 @@ const main = async () => {
     publishToRelay(relay, post);
   });
 
+  const REGEX_PING = /ping/i;
+  const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
+  const REGEX_DICE_SINGLE = /\b(dice)\b/i
+  const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
+  const REGEX_COUNT = /\b(count|カウント)\b/i;
+  const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
+  const REGEX_UNIXTIME = /\b(unixtime)\b/i;
+  const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
+  const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/gi;
+  const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/gi;
+  const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/gi;
+  const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
+  const REGEX_INFO = /\b(info|情報)\b/i;
+  const REGEX_STATUS = /\b(status|ステータス)\b/i;
+  const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
+  const REGEX_HELP = /\b(help|ヘルプ)\b/i;
+  commands = [
+    [REGEX_PING, true, cmdPing],
+    [REGEX_DICE_MULTI, true, cmdDiceMulti],
+    [REGEX_DICE_SINGLE, false, cmdDiceSingle],
+    [REGEX_REACTION, true, cmdReaction],
+    [REGEX_COUNT, true, cmdCount],
+    [REGEX_LOGINBONUS, true, cmdLoginbonus],
+    [REGEX_UNIXTIME, true, cmdUnixtime],
+    [REGEX_BLOCKTIME, true, cmdBlocktime],
+    [REGEX_SATCONV, true, cmdSatConv],
+    [REGEX_JPYCONV, true, cmdJpyConv],
+    [REGEX_USDCONV, true, cmdUsdConv],
+    [REGEX_REMIND, true, cmdRemind],
+    [REGEX_INFO, true, cmdInfo],
+    [REGEX_STATUS, true, cmdStatus],
+    [REGEX_REBOOT, true, cmdReboot],
+    [REGEX_HELP, false, cmdHelp],
+  ]
+
   sub.on("event", (ev) => {
     try {
       // リプライしても安全なら、リプライイベントを組み立てて送信する
@@ -752,85 +788,16 @@ const main = async () => {
       let wFlag = false;
       const userData = memoryData.get(ev.pubkey) || new Object();
 
-      const REGEX_PING = /ping/i;
-      if (ev.content.match(REGEX_PING)) {
-        wFlag = cmdPing(systemData, userData, relay, ev);
+      for (const command of commands) {
+        if (!ev.content.match(command[0]))
+          continue;
+        if (!command[1] && wFlag == true)
+          continue;
+        wFlag = command[1](systemData, userData, relay, ev)
       }
 
-      const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
-      const REGEX_DICE_SINGLE = /\b(dice)\b/i
-      if (ev.content.match(REGEX_DICE_MULTI)) {
-        wFlag = cmdDiceMulti(systemData, userData, relay, ev);
-      } else if (ev.content.match(REGEX_DICE_SINGLE)) {
-        wFlag = cmdDiceSingle(systemData, userData, relay, ev);
-      }
+      if (!wFlag) cmdUnknown(systemData, userData, relay, ev)
 
-      const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
-      if (ev.content.match(REGEX_REACTION)) {
-        wFlag = cmdFav(systemData, userData, relay, ev);
-      }
-
-      const REGEX_COUNT = /\b(count|カウント)\b/i;
-      if (ev.content.match(REGEX_COUNT)) {
-        wFlag = cmdCount(systemData, userData, relay, ev);
-      }
-
-      const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
-      if (ev.content.match(REGEX_LOGINBONUS)) {
-        wFlag = cmdLoginbonus(systemData, userData, relay, ev);
-      }
-
-      const REGEX_UNIXTIME = /\b(unixtime)\b/i;
-      if (ev.content.match(REGEX_UNIXTIME)) {
-        wFlag = cmdUnixtime(systemData, userData, relay, ev);
-      }
-
-      const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
-      if (ev.content.match(REGEX_BLOCKTIME)) {
-        wFlag = cmdBlocktime(systemData, userData, relay, ev);
-      }
-
-      if (ev.content.match(/\b(satconv)\s(\d+)\b/gi)) {
-        wFlag = cmdSatConv(systemData, userData, relay, ev);
-      }
-
-      if (ev.content.match(/\b(jpyconv)\s(\d+)\b/gi)) {
-        wFlag = cmdJpyConv(systemData, userData, relay, ev);
-      }
-
-      if (ev.content.match(/\b(usdconv)\s(\d+)\b/gi)) {
-        wFlag = cmdUsdConv(systemData, userData, relay, ev);
-      }
-
-      const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
-      if (ev.content.match(REGEX_REMIND)) {
-        wFlag = cmdRemind(systemData, userData, relay, ev);
-      }
-
-      const REGEX_INFO = /\b(info|情報)\b/i;
-      if (ev.content.match(REGEX_INFO)) {
-        wFlag = cmdInfo(systemData, userData, relay, ev);
-      }
-
-      const REGEX_STATUS = /\b(status|ステータス)\b/i;
-      if (ev.content.match(REGEX_STATUS)) {
-        wFlag = cmdStatus(systemData, userData, relay, ev);
-      }
-
-      const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
-      if (ev.content.match(REGEX_REBOOT)) {
-        wFlag = cmdReboot(systemData, userData, relay, ev);
-      }
-
-      const REGEX_HELP = /\b(help|ヘルプ)\b/i;
-      if (ev.content.match(REGEX_HELP)) {
-        wFlag = cmdHelp(systemData, userData, relay, ev);
-      }
-
-      if (!wFlag) {
-        cmdUnknown(systemData, userData, relay, ev);
-        userData.failedTimer = currUnixtime();
-      }
       memoryData.set(ev.pubkey, userData);
       memoryData.set("_", systemData);
     } catch (err) {
