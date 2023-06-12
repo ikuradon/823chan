@@ -348,7 +348,7 @@ const cmdLoginbonus = (_, userData, relay, ev) => {
     } else {
       // 新規ユーザー
       console.log("新規ユーザー");
-      const loginBonus = new Object();
+      const loginBonus = {}
       loginBonus.totalLoginCount = 1;
       loginBonus.consecutiveLoginCount = 1;
       loginBonus.lastLoginTime = ev.created_at;
@@ -645,7 +645,7 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
 // メイン関数
 const main = async () => {
   const memoryData = loadMemory();
-  const systemData = memoryData.get("_") || new Object();
+  const systemData = memoryData.get("_") || {};
 
   const relay = relayInit(relayUrl);
   relay.on("error", () => {
@@ -689,7 +689,7 @@ const main = async () => {
     try {
       // https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy
 
-      const currencyData = systemData.currencyData || new Object();
+      const currencyData = systemData.currencyData || {};
 
       axios.get("https://api.coingecko.com/api/v3/exchange_rates").then(response => {
         currencyData.btc2usd = Number(response.data.rates.usd.value);
@@ -790,7 +790,7 @@ const main = async () => {
 
       console.log("なんかきた: " + ev.content);
       let wFlag = false;
-      const userData = memoryData.get(ev.pubkey) || new Object();
+      const userData = memoryData.get(ev.pubkey) || {};
 
       for (const command of commands) {
         if (!ev.content.match(command[0]))
