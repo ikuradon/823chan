@@ -760,7 +760,11 @@ const main = async () => {
   const REGEX_STATUS = /\b(status|ステータス)\b/i;
   const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
   const REGEX_HELP = /\b(help|ヘルプ)\b/i;
-  commands = [
+
+  // 0: Regexp pattern
+  // 1: flag to call function even though wFlag is true
+  // 2: command function
+  let commands = [
     [REGEX_PING, true, cmdPing],
     [REGEX_DICE_MULTI, true, cmdDiceMulti],
     [REGEX_DICE_SINGLE, false, cmdDiceSingle],
