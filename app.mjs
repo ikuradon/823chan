@@ -305,7 +305,8 @@ const main = async () => {
         let wFlag = false;
         const userData = memoryData.get(ev.pubkey) || new Object();
 
-        if (ev.content.match(/ping/gi)) {
+        const REGEX_PING = /ping/i;
+        if (ev.content.match(REGEX_PING)) {
           wFlag = true;
           console.log("発火(ping): " + ev.content);
 
@@ -313,11 +314,13 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         }
 
-        if (ev.content.match(/(dice)\s(\d+)d(\d+)/gi)) {
+        const REGEX_DICE_MULTI = /(dice)\s(\d+)d(\d+)/i;
+        const REGEX_DICE_SINGLE = /(dice)/i
+        if (ev.content.match(REGEX_DICE_MULTI)) {
           wFlag = true;
           console.log("発火(さいころ指定): " + ev.content);
 
-          const matchContentDice = ev.content.match(/(dice)\s(\d+)d(\d+)/i);
+          const matchContentDice = ev.content.match(REGEX_DICE_MULTI);
           const diceCount = Number(matchContentDice[2]);
           const diceNum = Number(matchContentDice[3]);
           console.log(diceCount + "D" + diceNum);
@@ -335,7 +338,7 @@ const main = async () => {
             const replyPost = composeReplyPost("数えられない…", ev);
             publishToRelay(relay, replyPost);
           }
-        } else if (ev.content.match(/dice/gi)) {
+        } else if (ev.content.match(REGEX_DICE_SINGLE)) {
           wFlag = true;
           console.log("発火(さいころ1D6): " + ev.content);
 
@@ -344,7 +347,8 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         }
 
-        if (ev.content.match(/(fav|ふぁぼ|ファボ|祝福|星)/gi)) {
+        const REGEX_REACTION = /(fav|ふぁぼ|ファボ|祝福|星)/i;
+        if (ev.content.match(REGEX_REACTION)) {
           wFlag = true;
           console.log("発火(星投げ)");
 
@@ -404,7 +408,8 @@ const main = async () => {
           publishToRelay(relay, composeReaction(emoji, ev));
         }
 
-        if (ev.content.match(/(count|カウント)/gi)) {
+        const REGEX_COUNT = /(count|カウント)/i;
+        if (ev.content.match(REGEX_COUNT)) {
           wFlag = true;
           console.log("発火(カウンタ): " + ev.content);
 
@@ -417,7 +422,8 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         }
 
-        if (ev.content.match(/(loginbonus|ログインボーナス|ログボ|ろぐぼ)/gi)) {
+        const REGEX_LOGINBONUS = /(loginbonus|ログインボーナス|ログボ|ろぐぼ)/i;
+        if (ev.content.match(REGEX_LOGINBONUS)) {
           wFlag = true;
           console.log("発火(ログボ): " + ev.content);
 
@@ -474,7 +480,8 @@ const main = async () => {
           }
         }
 
-        if (ev.content.match(/(unixtime)/gi)) {
+        const REGEX_UNIXTIME = /(unixtime)/i;
+        if (ev.content.match(REGEX_UNIXTIME)) {
           wFlag = true;
           console.log("発火(unixtime): " + ev.content);
 
@@ -482,7 +489,8 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         };
 
-        if (ev.content.match(/(blocktime)/gi)) {
+        const REGEX_BLOCKTIME = /(blocktime)/i;
+        if (ev.content.match(REGEX_BLOCKTIME)) {
           wFlag = true;
           console.log("発火(blocktime): " + ev.content);
 
@@ -540,14 +548,18 @@ const main = async () => {
           }
         };
 
-        if (ev.content.match(/(remind)\s(.*)/gi)) {
+        const REGEX_REMIND = /(remind)\s(.*)/i;
+        if (ev.content.match(REGEX_REMIND)) {
           wFlag = true;
           console.log("発火(リマインダ): " + ev.content);
           let message;
           const reminderList = systemData.reminderList || new Array();
 
-          const reminderDateText = ev.content.match(/(remind)\s(.*)/i)[2];
-          if (reminderDateText.match(/^(list)/gi)) {
+          const reminderDateText = ev.content.match(REGEX_REMIND)[2];
+
+          const REGEX_REMIND_LIST = /^(list)$/i
+          const REGEX_REMIND_DELETE = /^(del)\s(.*)$/i
+          if (reminderDateText.match(REGEX_REMIND_LIST)) {
             message = "あなた宛に現在登録されている通知予定は以下の通りです！\n";
             const filterdList = reminderList.filter(record => (record.eventPubkey === ev.pubkey));
             if (filterdList.length === 0) {
@@ -557,8 +569,8 @@ const main = async () => {
                 message += format(new Date(record.remindAt), "yyyy-MM-dd kk:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
               });
             }
-          } else if (reminderDateText.match(/^(del)\s(.*)/gi)) {
-            const deleteWord = reminderDateText.match(/^(del)\s(.*)/i)[2].replace("nostr:", "");
+          } else if (reminderDateText.match(REGEX_REMIND_DELETE)) {
+            const deleteWord = reminderDateText.match(REGEX_REMIND_DELETE)[2].replace("nostr:", "");
             const deleteQuery = deleteWord.match(nip19.BECH32_REGEX) ? nip19.decode(deleteWord).data : deleteWord;
             systemData.reminderList = reminderList.filter(record => !(record.eventPubkey === ev.pubkey && record.eventId === deleteQuery));
             message = "指定されたノート( nostr:" + nip19.noteEncode(deleteQuery) + " )宛てにあなたが作成した通知を全て削除しました！";
@@ -581,7 +593,8 @@ const main = async () => {
           publishToRelay(relay, replyPost);
         }
 
-        if (ev.content.match(/(info|情報)/gi)) {
+        const REGEX_INFO = /(info|情報)/i;
+        if (ev.content.match(REGEX_INFO)) {
           wFlag = true;
           console.log("発火(情報): " + ev.content);
           if (userData.infoTimer === undefined)
@@ -639,7 +652,8 @@ const main = async () => {
           }
         }
 
-        if (ev.content.match(/(status|ステータス)/gi)) {
+        const REGEX_STATUS = /(status|ステータス)/i;
+        if (ev.content.match(REGEX_STATUS)) {
           wFlag = true;
           console.log("発火(ステータス): " + ev.content);
           if (systemData.statusTimer === undefined)
@@ -692,7 +706,8 @@ const main = async () => {
           }
         }
 
-        if (ev.content.match(/(reboot|再起動)/gi)) {
+        const REGEX_REBOOT = /(reboot|再起動)/i;
+        if (ev.content.match(REGEX_REBOOT)) {
           wFlag = true;
           console.log("発火(再起動): " + ev.content);
           if (ev.pubkey === ADMIN_HEX) {
@@ -705,7 +720,8 @@ const main = async () => {
           }
         }
 
-        if (ev.content.match(/(help|ヘルプ)/gi)) {
+        const REGEX_HELP = /(help|ヘルプ)/i;
+        if (ev.content.match(REGEX_HELP)) {
           wFlag = true;
           console.log("発火(ヘルプ): " + ev.content);
           let message = "";
