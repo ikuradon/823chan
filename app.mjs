@@ -384,11 +384,11 @@ const cmdBlocktime = (_systemData, _userData, relay, ev) => {
 }
 
 const cmdSatConv = (systemData, _, relay, ev) => {
-  if (!systemData.currencyData.updateAt != undefined) return false;
+  if (systemData.currencyData.updateAt === undefined) return false;
 
   console.log("発火(satconv): " + ev.content);
 
-  const sat = Number(ev.content.match(/satconv\s(\d+)/i)[1]);
+  const sat = Number(ev.content.match(REGEX_SATCONV)[2]);
   const usd = sat2btc(sat) * systemData.currencyData.btc2usd;
   const jpy = sat2btc(sat) * systemData.currencyData.btc2jpy;
   const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
@@ -399,11 +399,11 @@ const cmdSatConv = (systemData, _, relay, ev) => {
 }
 
 const cmdJpyConv = (systemData, _, relay, ev) => {
-  if (!systemData.currencyData.updateAt != undefined) return false;
+  if (systemData.currencyData.updateAt === undefined) return false;
 
   console.log("発火(jpyconv): " + ev.content);
 
-  const jpy = Number(ev.content.match(/jpyconv\s(\d+)/i)[1]);
+  const jpy = Number(ev.content.match(REGEX_JPYCONV)[2]);
   const usd = jpy / systemData.currencyData.usd2jpy;
   const sat = btc2sat(jpy / systemData.currencyData.btc2jpy);
   const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
@@ -414,11 +414,11 @@ const cmdJpyConv = (systemData, _, relay, ev) => {
 }
 
 const cmdUsdConv = (systemData, _, relay, ev) => {
-  if (!systemData.currencyData.updateAt != undefined) return false;
+  if (systemData.currencyData.updateAt === undefined) return false;
 
   console.log("発火(usdconv): " + ev.content);
 
-  const usd = Number(ev.content.match(/usdconv\s(\d+)/i)[1]);
+  const usd = Number(ev.content.match(REGEX_USDCONV)[2]);
   const jpy = usd * systemData.currencyData.usd2jpy;
   const sat = btc2sat(usd / systemData.currencyData.btc2usd);
   const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
@@ -434,6 +434,7 @@ const cmdRemind = (systemData, _, relay, ev) => {
   const reminderList = systemData.reminderList || [];
 
   const reminderDateText = ev.content.match(REGEX_REMIND)[2];
+  console.log(":" + reminderDateText)
 
   const REGEX_REMIND_LIST = /^(list)$/i
   const REGEX_REMIND_DELETE = /^(del)\s(.*)$/i
@@ -650,10 +651,10 @@ const REGEX_COUNT = /\b(count|カウント)\b/i;
 const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
 const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
-const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/gi;
-const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/gi;
-const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/gi;
-const REGEX_REMIND = /\b(remind)\s(.*)\b/i;
+const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
+const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
+const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
+const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
 const REGEX_INFO = /\b(info|情報)\b/i;
 const REGEX_STATUS = /\b(status|ステータス)\b/i;
 const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
