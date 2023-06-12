@@ -643,7 +643,7 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
   return true;
 }
 
-const REGEX_PING = /ping/i;
+const REGEX_PING = /\b(ping)\b/i;
 const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
 const REGEX_DICE_SINGLE = /\b(dice)\b/i
 const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
