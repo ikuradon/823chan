@@ -97,7 +97,7 @@ const publishToRelay = (relay, ev) => {
 };
 
 // strfryへコマンド実行する
-const strfryScan = async (reqQuery) => {
+const _strfryScan = async (reqQuery) => {
   const execParams = [reqQuery];
   const execOptions = {
     shell: true,
