@@ -430,7 +430,7 @@ const cmdUsdConv = (systemData, _, relay, ev) => {
 const cmdRemind = (systemData, _, relay, ev) => {
   console.log("発火(リマインダ): " + ev.content);
   let message;
-  const reminderList = systemData.reminderList || new Array();
+  const reminderList = systemData.reminderList || [];
 
   const reminderDateText = ev.content.match(REGEX_REMIND)[2];
 
@@ -712,7 +712,7 @@ const main = async () => {
 
   cron.schedule("*/30 * * * * *", () => {
     try {
-      const reminderList = systemData.reminderList || new Array();
+      const reminderList = systemData.reminderList || [];
       const current = new Date();
       // 現在時刻より前のリマインダを探してforEachでリプライを送る
       reminderList.filter(record => (record.remindAt <= current)).forEach(record => {
