@@ -547,21 +547,38 @@ const main = async () => {
           const reminderList = systemData.reminderList || new Array();
 
           const reminderDateText = ev.content.match(/(remind)\s(.*)/i)[2];
-          const reminderDate = chrono.parseDate(reminderDateText) || fromUnixTime(0);
-          if (reminderDate > new Date()) {
-            const record = {
-              remindAt: reminderDate.getTime(),
-              eventId: ev.id,
-              eventPubkey: ev.pubkey,
-            };
-            reminderList.push(record);
-            message = format(reminderDate, "yyyy-MM-dd kk:mm") + "になったらお知らせします！";
+          if (reminderDateText.match(/^(list)/gi)) {
+            message = "あなた宛に現在登録されている通知予定は以下の通りです！\n";
+            const filterdList = reminderList.filter(record => (record.eventPubkey === ev.pubkey));
+            if (filterdList.length === 0) {
+              message += "見つかりませんでした…";
+            } else {
+              filterdList.forEach(record => {
+                message += format(new Date(record.remindAt), "yyyy-MM-dd kk:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
+              });
+            }
+          } else if (reminderDateText.match(/^(del)\s(.*)/gi)) {
+            const deleteWord = reminderDateText.match(/^(del)\s(.*)/i)[2].replace("nostr:", "");
+            const deleteQuery = deleteWord.match(nip19.BECH32_REGEX) ? nip19.decode(deleteWord).data : deleteWord;
+            systemData.reminderList = reminderList.filter(record => !(record.eventPubkey === ev.pubkey && record.eventId === deleteQuery));
+            message = "指定されたノート( nostr:" + nip19.noteEncode(deleteQuery) + " )宛てにあなたが作成した通知を全て削除しました！";
           } else {
-            message = "正しく処理できませんでした…";
+            const reminderDate = chrono.parseDate(reminderDateText) || fromUnixTime(0);
+            if (reminderDate > new Date()) {
+              const record = {
+                remindAt: reminderDate.getTime(),
+                eventId: ev.id,
+                eventPubkey: ev.pubkey,
+              };
+              reminderList.push(record);
+              systemData.reminderList = reminderList;
+              message = format(reminderDate, "yyyy-MM-dd kk:mm") + "になったらお知らせします！";
+            } else {
+              message = "正しく処理できませんでした…";
+            }
           }
           const replyPost = composeReplyPost(message, ev);
           publishToRelay(relay, replyPost);
-          systemData.reminderList = reminderList;
         }
 
         if (ev.content.match(/(info|情報)/gi)) {
@@ -702,7 +719,11 @@ const main = async () => {
           message += "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n";
           message += "(loginbonus|ログインボーナス|ログボ|ろぐぼ) : ログインボーナスです！\n";
           message += "(ping) : pong!と返信します！\n";
+
           message += "(remind) <希望時間> : 希望時間にリプライを送信します！\n";
+          message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
+          message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
+
           message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
           message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
           message += "(unixtime) : 現在のUnixTimeを表示します！\n";
