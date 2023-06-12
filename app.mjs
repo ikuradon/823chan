@@ -645,19 +645,19 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
 const REGEX_PING = /\b(ping)\b/i;
 const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
 const REGEX_DICE_SINGLE = /\b(dice)\b/i
-const REGEX_REACTION = /\b(fav|ふぁぼ|ファボ|祝福|星)\b/i;
-const REGEX_COUNT = /\b(count|カウント)\b/i;
-const REGEX_LOGINBONUS = /\b(loginbonus|ログインボーナス|ログボ|ろぐぼ)\b/i;
+const REGEX_REACTION = /(fav|ふぁぼ|ファボ|祝福|星)/i;
+const REGEX_COUNT = /(count|カウント)/i;
+const REGEX_LOGINBONUS = /(loginbonus|ログインボーナス|ログボ|ろぐぼ)/i;
 const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
 const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
 const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
-const REGEX_INFO = /\b(info|情報)\b/i;
-const REGEX_STATUS = /\b(status|ステータス)\b/i;
-const REGEX_REBOOT = /\b(reboot|再起動)\b/i;
-const REGEX_HELP = /\b(help|ヘルプ)\b/i;
+const REGEX_INFO = /(info|情報)/i;
+const REGEX_STATUS = /(status|ステータス)/i;
+const REGEX_REBOOT = /(reboot|再起動)/i;
+const REGEX_HELP = /(help|ヘルプ)/i;
 
 // メイン関数
 const main = async () => {
