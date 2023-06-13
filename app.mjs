@@ -797,10 +797,10 @@ const main = async () => {
           continue;
         if (!command[1] && wFlag == true)
           continue;
-        wFlag = command[2](systemData, userData, relay, ev)
+        wFlag = command[2](systemData, userData, relay, ev);
       }
 
-      if (!wFlag) cmdUnknown(systemData, userData, relay, ev)
+      if (!wFlag) cmdUnknown(systemData, userData, relay, ev);
 
       memoryData.set(ev.pubkey, userData);
       memoryData.set("_", systemData);
