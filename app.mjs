@@ -581,6 +581,8 @@ const cmdStatus = (systemData, _, relay, ev) => {
     const replyPost = composeReplyPost("しばらく経ってからもう一度実行してください…\nCooldown: " + timerCooldown, ev);
     publishToRelay(relay, replyPost);
   }
+
+  return true;
 }
 
 const cmdReboot = (_systemData, _userData, relay, ev) => {
