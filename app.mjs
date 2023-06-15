@@ -358,6 +358,7 @@ const cmdLoginbonus = (_, userData, relay, ev) => {
   // メッセージ送信
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
+  return true;
 }
 
 const cmdUnixtime = (_systemData, _userData, relay, ev) => {
