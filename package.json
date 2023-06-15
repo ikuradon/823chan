@@ -15,6 +15,7 @@
     "date-fns": "^2.30.0",
     "dotenv": "^16.1.4",
     "node-cron": "^3.0.2",
+    "node-emoji": "^2.0.2",
     "nostr-tools": "^1.11.1",
     "websocket-polyfill": "^0.0.3"
   }
