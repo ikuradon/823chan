@@ -27,6 +27,7 @@ const BOT_PRIVATE_KEY_HEX = process.env.PRIVATE_KEY_HEX;
 const ADMIN_HEX = process.env.ADMIN_HEX;
 const STRFRY_EXEC_PATH = process.env.STRFRY_EXEC_PATH || "/app/strfry";
 const MEMORY_FILE = process.env.MEMORY_FILE || "./memory.json";
+const HEALTHCHECK_URL = process.env.HEALTHCHECK_URL || "";
 
 const relayUrl = "wss://yabu.me";
 
@@ -766,6 +767,18 @@ const main = async () => {
       console.error(err);
     }
   });
+
+  if (!!HEALTHCHECK_URL) {
+    cron.schedule("* * * * *", () => {
+      try {
+        axios.get(HEALTHCHECK_URL).then(response => {
+          console.log(response.data);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
 
   sub.on("eose", () => {
     console.log("****** EOSE ******");
