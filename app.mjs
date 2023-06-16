@@ -180,6 +180,18 @@ const isSafeToReply = ({ pubkey, created_at }) => {
   return true;
 }
 
+const greetingMessage = () => {
+  const hour = new Date().getHours();
+  let message = "";
+  if (4 <= hour && hour < 11) {
+    message = "おはようございます！";
+  } else if (11 <= hour && hour < 17) {
+    message = "こんにちは！";
+  } else {
+    message = "こんばんは！";
+  }
+  return message;
+}
 
 const loadMemory = () => {
   if (!fs.existsSync(MEMORY_FILE)) {
@@ -337,7 +349,7 @@ const cmdLoginbonus = (_, userData, relay, ev) => {
         // ユーザーデータ保存
         userData.loginBonus = loginBonus;
 
-        message = `こんにちは！\nあなたの合計ログイン回数は${loginBonus.totalLoginCount}回です。\nあなたの連続ログイン回数は${loginBonus.consecutiveLoginCount}回です。`;
+        message = `${greetingMessage()}\nあなたの合計ログイン回数は${loginBonus.totalLoginCount}回です。\nあなたの連続ログイン回数は${loginBonus.consecutiveLoginCount}回です。`;
       } else {
         //すでにログイン済
         console.log("すでにログイン済");
