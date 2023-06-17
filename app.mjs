@@ -707,20 +707,28 @@ const cmdUnknown = (_systemData, userData, relay, ev) => {
 }
 
 const REGEX_PING = /\b(ping)\b/i;
+const REGEX_REACTION = /(\bfav\b|ふぁぼ|ファボ|祝福|星)/i;
+
 const REGEX_DICE_MULTI = /\b(dice)\s(\d+)d(\d+)\b/i;
 const REGEX_DICE_SINGLE = /\b(dice)\b/i
-const REGEX_REACTION = /(\bfav\b|ふぁぼ|ファボ|祝福|星)/i;
+
 const REGEX_COUNT = /(\bcount\b|カウント)/i;
 const REGEX_LOGINBONUS = /(\bloginbonus\b|ログインボーナス|ログボ|ろぐぼ)/i;
+
 const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
+
 const REGEX_WEATHER = /\b(weather)\s(.+)/i
+
+const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
+
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
 const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
-const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
+
 const REGEX_INFO = /(\binfo\b|情報)/i;
 const REGEX_STATUS = /(\bstatus\b|ステータス)(?=[\s,.:;"']|$)/i;
+
 const REGEX_REBOOT = /(\breboot\b|再起動)/i;
 const REGEX_HELP = /(\bhelp\b|ヘルプ)/i;
 
