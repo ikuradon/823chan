@@ -485,6 +485,54 @@ const cmdRemind = (systemData, _, relay, ev) => {
   return true;
 }
 
+const cmdWeather = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(天気): " + ev.content);
+  const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
+  let message = "";
+
+  const command = args[0] || "";
+  switch (command) {
+    case "forecast":
+      const location = args.splice(1).join(" ");
+      if (!!location) {
+        try {
+          const geoData = (await axios.get(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${location}`)).data[0];
+          console.log(geoData);
+          message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
+          const coordinates = geoData.geometry.coordinates;
+          const addressData = (await axios.get(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lon=${coordinates[0]}&lat=${coordinates[1]}`)).data;
+          console.log(addressData.results);
+          const muniCode = addressData.results.muniCd + "00";
+          console.log(muniCode);
+          const areaData = (await axios.get(`https://www.jma.go.jp/bosai/common/const/area.json`)).data;
+          const class15sCode = Object.entries(areaData.class20s).filter(record => (record[0] === muniCode))[0][1].parent;
+          console.log(class15sCode);
+          const class10sCode = Object.entries(areaData.class15s).filter(record => (record[0] === class15sCode))[0][1].parent;
+          console.log(class10sCode);
+          const officesCode = Object.entries(areaData.class10s).filter(record => (record[0] === class10sCode))[0][1].parent;
+          console.log(officesCode);
+          const forecastData = (await axios.get(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${officesCode}.json`)).data;
+          console.log(forecastData.text);
+          message += forecastData.text;
+        } catch (e) {
+          console.log(e);
+          message = "何か問題が発生しました…";
+        }
+      } else {
+        message = "場所が不明です…";
+      }
+      break;
+
+    default:
+      message = "コマンドが不明です…";
+      break;
+  }
+
+  const replyPost = composeReplyPost(message, ev);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
 const cmdInfo = (_systemData, userData, relay, ev) => {
   console.log("発火(情報): " + ev.content);
   if (userData.infoTimer === undefined)
@@ -629,6 +677,8 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
   message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
 
+  message += "(weather) forecast <場所> : 指定された場所の天気を取得します！(気象庁情報)\n";
+
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
   message += "(unixtime) : 現在のUnixTimeを表示します！\n";
@@ -664,6 +714,7 @@ const REGEX_COUNT = /(\bcount\b|カウント)/i;
 const REGEX_LOGINBONUS = /(\bloginbonus\b|ログインボーナス|ログボ|ろぐぼ)/i;
 const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
+const REGEX_WEATHER = /\b(weather)\s(.+)/i
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
 const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
@@ -803,6 +854,7 @@ const main = async () => {
     [REGEX_JPYCONV, true, cmdJpyConv],
     [REGEX_USDCONV, true, cmdUsdConv],
     [REGEX_REMIND, true, cmdRemind],
+    [REGEX_WEATHER, true, cmdWeather],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
     [REGEX_REBOOT, true, cmdReboot],
