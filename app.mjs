@@ -485,6 +485,82 @@ const cmdRemind = (systemData, _, relay, ev) => {
   return true;
 }
 
+const getLocation = async (location) => {
+  if (!location)
+    return false;
+
+  return (await axios.get(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${location}`)).data;
+}
+
+const getWeather = async (location) => {
+  if (!location)
+    return false;
+
+  let message = "";
+  try {
+    const geoDatas = await getLocation(location);
+    const geoData = geoDatas[0];
+    if (!!geoData.length) {
+      message = "知らない場所です…";
+    }
+    console.log(geoData);
+    message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
+    const coordinates = geoData.geometry.coordinates;
+    const addressData = (await axios.get(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lon=${coordinates[0]}&lat=${coordinates[1]}`)).data;
+    console.log(addressData.results);
+    const muniCode = addressData.results.muniCd + "00";
+    console.log(muniCode);
+    const areaData = (await axios.get(`https://www.jma.go.jp/bosai/common/const/area.json`)).data;
+
+    const class20sData = Object.entries(areaData.class20s).sort((left, right) => {
+      if (Number(left[0]) < Number(right[0])) return -1;
+      if (Number(left[0]) > Number(right[0])) return 1;
+      return 0;
+    });
+    let left = 0, mid = 0, right = class20sData.length;
+    while (right - left > 1) {
+      mid = Math.floor((left + right) / 2);
+      if (Number(muniCode) === Number(class20sData[mid][0]))
+        break;
+      else if (Number(muniCode) > Number(class20sData[mid][0]))
+        left = mid;
+      else
+        right = mid;
+    }
+    if (Number(muniCode) < Number(class20sData[mid][0]))
+      mid--;
+
+
+    const class15sCode = class20sData[mid][1].parent;
+    console.log(class15sCode);
+    const class10sCode = Object.entries(areaData.class15s).filter(record => (record[0] === class15sCode))[0][1].parent;
+    console.log(class10sCode);
+    const officesCode = Object.entries(areaData.class10s).filter(record => (record[0] === class10sCode))[0][1].parent;
+    console.log(officesCode);
+    const forecastData = (await axios.get(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${officesCode}.json`)).data;
+    console.log(forecastData.text);
+    message += forecastData.text;
+  } catch (e) {
+    console.log(e);
+    message = "何か問題が発生しました…";
+  }
+  return message;
+}
+
+const cmdWeatherAlt = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(天気Alt): " + ev.content);
+  const location = ev.content.match(REGEX_WEATHER_ALT)[1] || "";
+  let message = "";
+  if (!!location)
+    message = await getWeather(location);
+  else
+    message = "場所が不明です…";
+
+  const replyPost = composeReplyPost(message, ev);
+  publishToRelay(relay, replyPost);
+  return true;
+
+}
 const cmdWeather = async (_systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
@@ -494,33 +570,10 @@ const cmdWeather = async (_systemData, _userData, relay, ev) => {
   switch (command) {
     case "forecast":
       const location = args.splice(1).join(" ");
-      if (!!location) {
-        try {
-          const geoData = (await axios.get(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${location}`)).data[0];
-          console.log(geoData);
-          message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
-          const coordinates = geoData.geometry.coordinates;
-          const addressData = (await axios.get(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lon=${coordinates[0]}&lat=${coordinates[1]}`)).data;
-          console.log(addressData.results);
-          const muniCode = addressData.results.muniCd + "00";
-          console.log(muniCode);
-          const areaData = (await axios.get(`https://www.jma.go.jp/bosai/common/const/area.json`)).data;
-          const class15sCode = Object.entries(areaData.class20s).filter(record => (record[0] === muniCode))[0][1].parent;
-          console.log(class15sCode);
-          const class10sCode = Object.entries(areaData.class15s).filter(record => (record[0] === class15sCode))[0][1].parent;
-          console.log(class10sCode);
-          const officesCode = Object.entries(areaData.class10s).filter(record => (record[0] === class10sCode))[0][1].parent;
-          console.log(officesCode);
-          const forecastData = (await axios.get(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${officesCode}.json`)).data;
-          console.log(forecastData.text);
-          message += forecastData.text;
-        } catch (e) {
-          console.log(e);
-          message = "何か問題が発生しました…";
-        }
-      } else {
+      if (!!location)
+        message = await getWeather(location);
+      else
         message = "場所が不明です…";
-      }
       break;
 
     default:
@@ -678,6 +731,7 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
 
   message += "(weather) forecast <場所> : 指定された場所の天気を取得します！(気象庁情報)\n";
+  message += "<場所>の天気 : 上のエイリアスです！\n";
 
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
@@ -719,6 +773,7 @@ const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
 
 const REGEX_WEATHER = /\b(weather)\s(.+)/i
+const REGEX_WEATHER_ALT = /(\S+)の天気/i
 
 const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
 
@@ -863,6 +918,7 @@ const main = async () => {
     [REGEX_USDCONV, true, cmdUsdConv],
     [REGEX_REMIND, true, cmdRemind],
     [REGEX_WEATHER, true, cmdWeather],
+    [REGEX_WEATHER_ALT, true, cmdWeatherAlt],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
     [REGEX_REBOOT, true, cmdReboot],
