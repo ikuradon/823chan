@@ -559,8 +559,8 @@ const cmdWeatherAlt = async (_systemData, _userData, relay, ev) => {
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
   return true;
-
 }
+
 const cmdWeather = async (_systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
