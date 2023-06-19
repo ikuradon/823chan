@@ -492,6 +492,23 @@ const getLocation = async (location) => {
   return (await axios.get(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${location}`)).data;
 }
 
+const cmdLocation = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(場所): " + ev.content);
+  const location = ev.content.match(REGEX_LOCATION) ? ev.content.match(REGEX_LOCATION)[2] : ev.content.match(REGEX_LOCATION_ALT) ? ev.content.match(REGEX_LOCATION_ALT)[1] : "";
+  let message = "わかりませんでした…";
+  if (!!location) {
+    const geoDatas = await getLocation(location);
+    if (!!geoDatas.length) {
+      const geoData = geoDatas[0];
+      message = `${location}は${geoData.properties.title}にあるみたいです！`;
+    }
+  }
+
+  const replyPost = composeReplyPost(message, ev);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
 const getWeather = async (location) => {
   if (!location)
     return false;
@@ -730,7 +747,9 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
   message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
 
-  message += "(weather) forecast <場所> : 指定された場所の天気を取得します！(気象庁情報)\n";
+  message += "(location) <場所> : 指定された場所を探します！\n";
+  message += "<場所>はどこ : 上のエイリアスです！\n";
+
   message += "<場所>の天気 : 上のエイリアスです！\n";
 
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
@@ -771,6 +790,9 @@ const REGEX_LOGINBONUS = /(\bloginbonus\b|ログインボーナス|ログボ|ろ
 
 const REGEX_UNIXTIME = /\b(unixtime)\b/i;
 const REGEX_BLOCKTIME = /\b(blocktime)\b/i;
+
+const REGEX_LOCATION = /\b(location)\s(.+)/i
+const REGEX_LOCATION_ALT = /(\S+)はどこ/i
 
 const REGEX_WEATHER = /\b(weather)\s(.+)/i
 const REGEX_WEATHER_ALT = /(\S+)の天気/i
@@ -917,6 +939,8 @@ const main = async () => {
     [REGEX_JPYCONV, true, cmdJpyConv],
     [REGEX_USDCONV, true, cmdUsdConv],
     [REGEX_REMIND, true, cmdRemind],
+    [REGEX_LOCATION, true, cmdLocation],
+    [REGEX_LOCATION_ALT, true, cmdLocation],
     [REGEX_WEATHER, true, cmdWeather],
     [REGEX_WEATHER_ALT, true, cmdWeatherAlt],
     [REGEX_INFO, true, cmdInfo],
