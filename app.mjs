@@ -499,10 +499,10 @@ const getWeather = async (location) => {
   let message = "";
   try {
     const geoDatas = await getLocation(location);
+    if (!geoDatas.length)
+      return "知らない場所です…";
     const geoData = geoDatas[0];
-    if (!!geoData.length) {
-      message = "知らない場所です…";
-    }
+
     console.log(geoData);
     message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
     const coordinates = geoData.geometry.coordinates;
