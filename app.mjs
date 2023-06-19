@@ -591,10 +591,18 @@ const cmdWeather = async (_systemData, _userData, relay, ev) => {
         message = await getWeather(location);
       else
         message = "場所が不明です…";
+
+      break;
+
+    case "map":
+      message = "現在の天気図です！\n";
+      message += "https://www.jma.go.jp/bosai/weather_map/data/png/" + (await axios.get("https://www.jma.go.jp/bosai/weather_map/data/list.json")).data.near.now[0];
+
       break;
 
     default:
       message = "コマンドが不明です…";
+
       break;
   }
 
@@ -750,7 +758,9 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "(location) <場所> : 指定された場所を探します！\n";
   message += "<場所>はどこ : 上のエイリアスです！\n";
 
+  message += "(weather) forecast <場所> : 指定された場所の天気をお知らせします！(気象庁情報)\n";
   message += "<場所>の天気 : 上のエイリアスです！\n";
+  message += "(weather) map : 現在の天気図を表示します！(気象庁情報)\n";
 
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
