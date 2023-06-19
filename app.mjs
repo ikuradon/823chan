@@ -567,11 +567,9 @@ const getWeather = async (location) => {
 const cmdWeatherAlt = async (_systemData, _userData, relay, ev) => {
   console.log("発火(天気Alt): " + ev.content);
   const location = ev.content.match(REGEX_WEATHER_ALT)[1] || "";
-  let message = "";
+  let message = "場所が不明です…";
   if (!!location)
     message = await getWeather(location);
-  else
-    message = "場所が不明です…";
 
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
