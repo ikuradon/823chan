@@ -834,6 +834,25 @@ const main = async () => {
   // ヒント: nostr-toolsのgetPublicKey()関数を使って、秘密鍵(BOT_PRIVATE_KEY_HEX)から公開鍵を得ることができます
   const sub = relay.sub([{ "kinds": [1], "#p": [getPublicKey(BOT_PRIVATE_KEY_HEX)], "since": currUnixtime() }]);
 
+  const subAll = relay.sub([{ kinds: [1], since: currUnixtime() }]);
+  subAll.on("event", (ev) => {
+    if (systemData.responseTimer === undefined)
+      systemData.responseTimer = 0;
+    const timerDuration = currUnixtime() - systemData.responseTimer;
+    const COOLDOWN_TIMER = 5 * 60;
+    if (timerDuration >= COOLDOWN_TIMER
+      && (
+        ev.content.match(/^823$/i) ||
+        ev.content.match(/^823chan$/i) ||
+        ev.content.match(/^やぶみちゃん$/i)
+      )
+    ) {
+      const post = composePost("👋");
+      publishToRelay(relay, post);
+      systemData.responseTimer = currUnixtime();
+    }
+  });
+
 
   // exit時
   process.on("exit", () => {
