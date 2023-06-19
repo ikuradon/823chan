@@ -15,8 +15,11 @@ import * as fs from "node:fs";
 import * as readline from "node:readline";
 
 import * as cron from "node-cron";
+import StaticMaps from "staticmaps";
+import sharp from "sharp";
 import axios from "axios";
-import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks } from "date-fns";
+import FormData from "form-data";
+import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks, parse } from "date-fns";
 import * as chrono from "chrono-node";
 import * as emoji from "node-emoji";
 
@@ -28,6 +31,9 @@ const ADMIN_HEX = process.env.ADMIN_HEX;
 const STRFRY_EXEC_PATH = process.env.STRFRY_EXEC_PATH || "/app/strfry";
 const MEMORY_FILE = process.env.MEMORY_FILE || "./memory.json";
 const HEALTHCHECK_URL = process.env.HEALTHCHECK_URL || "";
+const CHEVERETO_BASE_URL = process.env.CHEVERETO_BASE_URL || "";
+const CHEVERETO_API_KEY = process.env.CHEVERETO_API_KEY || "";
+const CHEVERETO_ALBUM_ID = process.env.CHEVERETO_ALBUM_ID || "";
 
 const relayUrl = "wss://yabu.me";
 
@@ -576,9 +582,61 @@ const cmdWeatherAlt = async (_systemData, _userData, relay, ev) => {
   return true;
 }
 
-const cmdWeather = async (_systemData, _userData, relay, ev) => {
+const uploadToChevereto = async (title, buffer) => {
+  const form = new FormData();
+  form.append("source", buffer.toString("base64"));
+  form.append("title", title);
+  form.append("album_id", CHEVERETO_ALBUM_ID);
+  form.append("format", "json");
+  const config = {
+    headers: {
+      "X-API-Key": CHEVERETO_API_KEY,
+      ...form.getHeaders(),
+    },
+  };
+
+  const result = (await axios.post(CHEVERETO_BASE_URL + "/api/1/upload", form, config)).data;
+  return result.image.url;
+};
+
+const getLatestHimawariTime = async () => {
+  const fdDatas = (await axios.get("https://www.jma.go.jp/bosai/himawari/data/satimg/targetTimes_fd.json")).data;
+  return fdDatas.slice(-1)[0];
+}
+
+const generateHimawariImage = async (fdData) => {
+  const tileBaseUrl = `https://www.jma.go.jp/bosai/himawari/data/satimg/${fdData.basetime}/fd/${fdData.validtime}/B13/TBB/`;
+
+  const tileUrl = tileBaseUrl + "{z}/{x}/{y}.jpg";
+  const options = {
+    width: 1024,
+    height: 1024,
+    tileUrl: tileUrl,
+  }
+
+  const map = new StaticMaps(options);
+  await map.render([137, 34.5], 5);
+  const mapBuffer = await map.image.buffer("image/png", { quality: 75 });
+  const mapImage = sharp(mapBuffer);
+
+  // mapImage.toFile("map.png", (err, info) => {
+  //     console.log(info);
+  //     if (err)
+  //         console.log(err);
+  // });
+  const mergedBuffer = await mapImage.composite([{
+    input: "./overlay.png",
+  }]).toFormat("webp").toBuffer();
+
+  const url = await uploadToChevereto("himawari-" + fdData.basetime, mergedBuffer);
+  return url;
+};
+
+const cmdWeather = async (systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
+  const himawariCache = systemData.himawariCache || [];
+
   let message = "";
 
   const command = args[0] || "";
@@ -598,6 +656,26 @@ const cmdWeather = async (_systemData, _userData, relay, ev) => {
 
       break;
 
+    case "himawari":
+      const lastHimawariDate = fromUnixTime(himawariCache.lastHimawariDate || 0);
+      let himawariUrl = "";
+      const fdData = await getLatestHimawariTime();
+      const currentHimawariDate = parse(fdData.basetime + "Z", "yyyyMMddHHmmssX", new Date());
+      if (currentHimawariDate > lastHimawariDate) {
+        console.log("生成");
+        himawariUrl = await generateHimawariImage(fdData);
+        console.log("生成完了: " + himawariUrl);
+        himawariCache.lastHimawariDate = getUnixTime(currentHimawariDate);
+        himawariCache.lastHimawariUrl = himawariUrl;
+      } else {
+        himawariUrl = himawariCache.lastHimawariUrl;
+      }
+      const dateText = format(currentHimawariDate, "yyyy-MM-dd HH:mm");
+      message = `${dateText}現在の気象衛星ひまわりの画像です！\n`;
+      message += himawariUrl;
+
+      break;
+
     default:
       message = "コマンドが不明です…";
 
@@ -606,6 +684,8 @@ const cmdWeather = async (_systemData, _userData, relay, ev) => {
 
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
+
+  systemData.himawariCache = himawariCache;
   return true;
 }
 
@@ -759,6 +839,8 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "(weather) forecast <場所> : 指定された場所の天気をお知らせします！(気象庁情報)\n";
   message += "<場所>の天気 : 上のエイリアスです！\n";
   message += "(weather) map : 現在の天気図を表示します！(気象庁情報)\n";
+  message += "(weather) himawari : 現在の気象衛星ひまわりの画像を表示します！(気象庁情報)\n";
+
 
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
