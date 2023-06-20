@@ -619,11 +619,6 @@ const generateHimawariImage = async (fdData) => {
   const mapBuffer = await map.image.buffer("image/png", { quality: 75 });
   const mapImage = sharp(mapBuffer);
 
-  // mapImage.toFile("map.png", (err, info) => {
-  //     console.log(info);
-  //     if (err)
-  //         console.log(err);
-  // });
   const mergedBuffer = await mapImage.composite([{
     input: "./overlay.png",
   }]).toFormat("webp").toBuffer();
