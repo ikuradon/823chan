@@ -630,7 +630,7 @@ const generateHimawariImage = async (fdData) => {
 const cmdWeather = async (systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
-  const himawariCache = systemData.himawariCache || [];
+  const himawariCache = systemData.himawariCache || {};
 
   let message = "";
 
