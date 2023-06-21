@@ -570,12 +570,40 @@ const getWeather = async (location) => {
   return message;
 }
 
-const cmdWeatherAlt = async (_systemData, _userData, relay, ev) => {
-  console.log("発火(天気Alt): " + ev.content);
-  const location = ev.content.match(REGEX_WEATHER_ALT)[1] || "";
+const cmdWeatherAltForecast = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(天気Alt予報): " + ev.content);
+  const location = ev.content.match(REGEX_WEATHER_ALT_FORECAST)[1] || "";
   let message = "場所が不明です…";
   if (!!location)
     message = await getWeather(location);
+
+  const replyPost = composeReplyPost(message, ev);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
+const cmdWeatherAltHimawari = async (systemData, _userData, relay, ev) => {
+  console.log("発火(天気Altひまわり): " + ev.content);
+  const himawariCache = systemData.himawariCache || {};
+  let message = "";
+
+  const lastHimawariDate = fromUnixTime(himawariCache.lastHimawariDate || 0);
+  let himawariUrl = "";
+  const fdData = await getLatestHimawariTime();
+  const currentHimawariDate = parse(fdData.basetime + "Z", "yyyyMMddHHmmssX", new Date());
+  if (currentHimawariDate > lastHimawariDate) {
+    console.log("生成");
+    himawariUrl = await generateHimawariImage(fdData);
+    console.log("生成完了: " + himawariUrl);
+    himawariCache.lastHimawariDate = getUnixTime(currentHimawariDate);
+    himawariCache.lastHimawariUrl = himawariUrl;
+  } else {
+    himawariUrl = himawariCache.lastHimawariUrl;
+  }
+  const dateText = format(currentHimawariDate, "yyyy-MM-dd HH:mm");
+  message = `${dateText}現在の気象衛星ひまわりの画像です！\n`;
+  message += himawariUrl;
+  systemData.himawariCache = himawariCache;
 
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
@@ -630,7 +658,6 @@ const generateHimawariImage = async (fdData) => {
 const cmdWeather = async (systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
-  const himawariCache = systemData.himawariCache || {};
 
   let message = "";
 
@@ -652,6 +679,8 @@ const cmdWeather = async (systemData, _userData, relay, ev) => {
       break;
 
     case "himawari":
+      const himawariCache = systemData.himawariCache || {};
+
       const lastHimawariDate = fromUnixTime(himawariCache.lastHimawariDate || 0);
       let himawariUrl = "";
       const fdData = await getLatestHimawariTime();
@@ -668,6 +697,7 @@ const cmdWeather = async (systemData, _userData, relay, ev) => {
       const dateText = format(currentHimawariDate, "yyyy-MM-dd HH:mm");
       message = `${dateText}現在の気象衛星ひまわりの画像です！\n`;
       message += himawariUrl;
+      systemData.himawariCache = himawariCache;
 
       break;
 
@@ -680,7 +710,6 @@ const cmdWeather = async (systemData, _userData, relay, ev) => {
   const replyPost = composeReplyPost(message, ev);
   publishToRelay(relay, replyPost);
 
-  systemData.himawariCache = himawariCache;
   return true;
 }
 
@@ -880,7 +909,9 @@ const REGEX_LOCATION = /\b(location)\s(.+)/i
 const REGEX_LOCATION_ALT = /(\S+)はどこ/i
 
 const REGEX_WEATHER = /\b(weather)\s(.+)/i
-const REGEX_WEATHER_ALT = /(\S+)の天気/i
+const REGEX_WEATHER_ALT_FORECAST = /(\S+)の天気/i
+const REGEX_WEATHER_ALT_HIMAWARI = /(ひまわり)/i
+
 
 const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
 
@@ -918,14 +949,21 @@ const main = async () => {
     const timerDuration = currUnixtime() - systemData.responseTimer;
     const COOLDOWN_TIMER = 5 * 60;
     if (timerDuration >= COOLDOWN_TIMER
-      && (
+    ) {
+      if (
         ev.content.match(/^823$/i) ||
         ev.content.match(/^823chan$/i) ||
         ev.content.match(/^やぶみちゃん$/i)
-      )
-    ) {
-      const post = composePost("👋");
-      publishToRelay(relay, post);
+      ) {
+        const post = composePost("👋");
+        publishToRelay(relay, post);
+      } else if (
+        ev.content.match(/ヤッブミーン/i) ||
+        ev.content.match(/ﾔｯﾌﾞﾐｰﾝ/i)
+      ) {
+        const post = composePost("＼ﾊｰｲ🙌／");
+        publishToRelay(relay, post);
+      }
       systemData.responseTimer = currUnixtime();
     }
   });
@@ -1046,7 +1084,9 @@ const main = async () => {
     [REGEX_LOCATION, true, cmdLocation],
     [REGEX_LOCATION_ALT, true, cmdLocation],
     [REGEX_WEATHER, true, cmdWeather],
-    [REGEX_WEATHER_ALT, true, cmdWeatherAlt],
+    [REGEX_WEATHER_ALT_FORECAST, true, cmdWeatherAltForecast],
+    [REGEX_WEATHER_ALT_HIMAWARI, true, cmdWeatherAltHimawari],
+
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
     [REGEX_REBOOT, true, cmdReboot],
