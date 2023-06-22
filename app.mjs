@@ -8,7 +8,6 @@ import {
 } from "nostr-tools";
 import "websocket-polyfill";
 
-import "dotenv/config";
 
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
@@ -22,19 +21,11 @@ import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks, parse 
 import * as chrono from "chrono-node";
 import * as emoji from "node-emoji";
 
+import * as ENVIRONMENT from "./environment.mjs";
+import * as CONST from "./const.mjs";
+
 const currUnixtime = () => getUnixTime(new Date());
 const START_TIME = new Date();
-
-const BOT_PRIVATE_KEY_HEX = process.env.PRIVATE_KEY_HEX;
-const ADMIN_HEX = process.env.ADMIN_HEX;
-const STRFRY_EXEC_PATH = process.env.STRFRY_EXEC_PATH || "/app/strfry";
-const MEMORY_FILE = process.env.MEMORY_FILE || "./memory.json";
-const HEALTHCHECK_URL = process.env.HEALTHCHECK_URL || "";
-const CHEVERETO_BASE_URL = process.env.CHEVERETO_BASE_URL || "";
-const CHEVERETO_API_KEY = process.env.CHEVERETO_API_KEY || "";
-const CHEVERETO_ALBUM_ID = process.env.CHEVERETO_ALBUM_ID || "";
-
-const relayUrl = "wss://yabu.me";
 
 /**
  * テキスト投稿イベント(リプライ)を組み立てる
@@ -53,7 +44,7 @@ const composeReplyPost = (content, targetEvent, created_at = currUnixtime() + 1)
   };
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, BOT_PRIVATE_KEY_HEX);
+  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
 };
 
 /**
@@ -69,7 +60,7 @@ const composePost = (content, created_at = currUnixtime() + 1) => {
   }
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, BOT_PRIVATE_KEY_HEX);
+  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
 }
 
 /**
@@ -89,7 +80,7 @@ const composeReaction = (emoji, targetEvent) => {
   };
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, BOT_PRIVATE_KEY_HEX);
+  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
 };
 
 // リレーにイベントを送信
@@ -110,7 +101,7 @@ const _strfryScan = async (reqQuery) => {
     JSON.stringify(reqQuery)
   ];
 
-  const strfryProcess = childProcess.spawn(STRFRY_EXEC_PATH, execParams);
+  const strfryProcess = childProcess.spawn(ENVIRONMENT.STRFRY_EXEC_PATH, execParams);
   const rl = readline.createInterface({
     input: strfryProcess.stdout,
     crlfDelay: Infinity,
@@ -132,7 +123,7 @@ const strfryCount = (reqQuery) => {
     "--count",
   ];
 
-  return Number(childProcess.execFileSync(STRFRY_EXEC_PATH, execParams));
+  return Number(childProcess.execFileSync(ENVIRONMENT.STRFRY_EXEC_PATH, execParams));
 };
 
 /**
@@ -150,7 +141,7 @@ const strfryGetMetadata = (pubkey) => {
     JSON.stringify(reqQuery),
   ];
 
-  const execOut = childProcess.execFileSync(STRFRY_EXEC_PATH, execParams);
+  const execOut = childProcess.execFileSync(ENVIRONMENT.STRFRY_EXEC_PATH, execParams);
   const userInfo = execOut.toString();
   return JSON.parse(userInfo || "{}");
 }
@@ -200,17 +191,17 @@ const greetingMessage = () => {
 }
 
 const loadMemory = () => {
-  if (!fs.existsSync(MEMORY_FILE)) {
+  if (!fs.existsSync(ENVIRONMENT.MEMORY_FILE)) {
     saveMemory(new Map());
   }
   console.log("読み込み開始...");
-  const memoryData = JSON.parse(fs.readFileSync(MEMORY_FILE));
+  const memoryData = JSON.parse(fs.readFileSync(ENVIRONMENT.MEMORY_FILE));
   console.log("読み込み成功!");
   return new Map(memoryData);
 }
 
 const saveMemory = (memoryData) => {
-  fs.writeFileSync(MEMORY_FILE, JSON.stringify([...memoryData]));
+  fs.writeFileSync(ENVIRONMENT.MEMORY_FILE, JSON.stringify([...memoryData]));
   console.log("保存しました");
 }
 
@@ -259,55 +250,8 @@ const cmdDiceSingle = (_systemData, _userData, relay, ev) => {
 const cmdReaction = (_systemData, _userData, relay, ev) => {
   console.log("発火(星投げ)");
 
-  const aaList = [
-    "(   ･᷄ὢ･᷅ )╮=͟͟͞͞ Z",
-    "( ∩ ˙-˙) =͟͟͞͞꜆꜄꜆ Z",
-    "( ﾉ ´ ･ω･)ﾉ ⌒ Z ﾎﾟｲｯ!!",
-    "( ﾉﾟД҂)ﾉ⌒Z ﾎﾟｲ",
-    "(･x･ﾉ)ﾉ⌒ Z ﾎﾟｲｯ",
-    "(｡-ω -｡)ﾉ ･ﾟﾟ･。Z ﾎﾟｲｯ",
-    "(｡･ω･) σ ⌒ Z",
-    "(* ﾉ･ω･) ﾉ⌒ Z ﾎﾟｲ",
-    "(*・・)σ ⌒ Z ﾎﾟｲｯ",
-    "(´・ω・`)っ⌒Z ぽーい",
-    "(´っ･ω･)っ Z",
-    "(Ｕ 'ᴗ')⊃≡ Z",
-    "(っ･-･)⊃ ⌒Z ﾎﾟｲ",
-    "(っ･-･)⊃ ⌒三 Z",
-    "(っ'-')╮=͟͟͞͞ Z",
-    "(っ'ヮ')╮ =͟͟͞͞三 Z",
-    "(っ'ω')っ⌒Z ﾎﾟｲ",
-    "(っ´∀`)╮ =͟͟͞͞ Z",
-    "(っˊᵕˋ)╮=͟͟͞͞ Z",
-    "(っ˶'ω')⊃ =͟͟͞͞ Z",
-    "(ﾉ *ω*)ﾉ ⌒ Z ﾎﾟｲ♪",
-    "(ﾉ*˙˘˙)ﾉ =͟͟͞͞ Z",
-    "(ﾉﾟ∀ﾟ) ﾉ ⌒ Z",
-    "(ﾉﾟДﾟ)ﾉ⌒ Z ﾎﾟｲ",
-    "|'ω')ﾉ⌒ Z",
-    "|'ω')ﾉ⌒゜Z ﾎﾟｲｯ",
-    "╰( 　T□T)╮-=ﾆ=一＝三 Z",
-    "╰(　`^´ )╮-=ﾆ=一＝三 Z",
-    "╰( ^ o ^)╮-=ニ = Z",
-    "╰( ͡° ͜ʖ ͡°)╮-｡･*･:≡ Z",
-    "╰((#°Д°))╮ Z",
-    "Z ･⌒ ヾ(*´ｰ｀) ﾎﾟｲ",
-    "Z ･⌒ ヾ(*´ω`) ﾎﾟｲ",
-    "Z ・⌒ヾ( ﾟ⊿ﾟ)ﾎﾟｲｯ",
-    "Z \( '-'\* )ﾎﾟｲｯ",
-    "Z ⌒ ヽ(´ｰ｀)",
-    "Z ⌒⌒ ヽ(･ω･*ヽ)",
-    "Z ⌒ヽ(･ω･* ヽ)",
-    "Z ⌒ヽ(･ω･*ヽ)ﾎﾟｲ",
-    "ｲﾗﾈ!(ﾟ∀ﾟ)ﾉ ⌒ Z ﾎﾟｨｯ",
-    "ﾎﾟｲ(ﾉ˙³˙)ﾉ⌒ Z",
-    "ﾎﾟｲｯ( ･ω･)ﾉ ⌒ Z",
-    "ﾎﾟｲｯ('ω' )ﾉ⌒ Z",
-    "三╰( `•ω•)╮-=ﾆ = 一＝三 Z",
-  ];
-
   const reaction = emoji.random().emoji;
-  const replyPost = composeReplyPost(aaList[Math.floor(Math.random() * aaList.length)].replace("Z", reaction), ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(CONST.AA_LIST[Math.floor(Math.random() * CONST.AA_LIST.length)].replace("Z", reaction), ev, ev.created_at + 1);
   publishToRelay(relay, replyPost);
   publishToRelay(relay, composeReaction(reaction, ev));
 
@@ -673,16 +617,16 @@ const uploadToChevereto = async (title, buffer) => {
   const form = new FormData();
   form.append("source", buffer.toString("base64"));
   form.append("title", title);
-  form.append("album_id", CHEVERETO_ALBUM_ID);
+  form.append("album_id", ENVIRONMENT.CHEVERETO_ALBUM_ID);
   form.append("format", "json");
   const config = {
     headers: {
-      "X-API-Key": CHEVERETO_API_KEY,
+      "X-API-Key": ENVIRONMENT.CHEVERETO_API_KEY,
       ...form.getHeaders(),
     },
   };
 
-  const result = (await axios.post(CHEVERETO_BASE_URL + "/api/1/upload", form, config)).data;
+  const result = (await axios.post(ENVIRONMENT.CHEVERETO_BASE_URL + "/api/1/upload", form, config)).data;
   return result.image.url;
 };
 
@@ -927,7 +871,7 @@ const cmdStatus = (systemData, _, relay, ev) => {
 
 const cmdReboot = (_systemData, _userData, relay, ev) => {
   console.log("発火(再起動): " + ev.content);
-  if (ev.pubkey === ADMIN_HEX) {
+  if (ev.pubkey === ENVIRONMENT.ADMIN_HEX) {
     const replyPost = composeReplyPost("💤", ev, ev.created_at + 1);
     publishToRelay(relay, replyPost);
     process.exit(0);
@@ -1036,7 +980,7 @@ const main = async () => {
   const memoryData = loadMemory();
   const systemData = memoryData.get("_") || {};
 
-  const relay = relayInit(relayUrl);
+  const relay = relayInit(ENVIRONMENT.RELAY_URL);
   relay.on("error", () => {
     console.error("接続に失敗…");
   });
@@ -1046,7 +990,7 @@ const main = async () => {
 
   /* Q-2: 「このBotの公開鍵へのリプライ」を絞り込むフィルタを設定して、イベントを購読しよう */
   // ヒント: nostr-toolsのgetPublicKey()関数を使って、秘密鍵(BOT_PRIVATE_KEY_HEX)から公開鍵を得ることができます
-  const sub = relay.sub([{ "kinds": [1], "#p": [getPublicKey(BOT_PRIVATE_KEY_HEX)], "since": currUnixtime() }]);
+  const sub = relay.sub([{ "kinds": [1], "#p": [getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)], "since": currUnixtime() }]);
 
   const subAll = relay.sub([{ kinds: [1], since: currUnixtime() }]);
   subAll.on("event", (ev) => {
@@ -1155,10 +1099,10 @@ const main = async () => {
     }
   });
 
-  if (!!HEALTHCHECK_URL) {
+  if (!!ENVIRONMENT.HEALTHCHECK_URL) {
     cron.schedule("* * * * *", () => {
       try {
-        axios.get(HEALTHCHECK_URL).then(response => {
+        axios.get(ENVIRONMENT.HEALTHCHECK_URL).then(response => {
           console.log(response.data);
         });
       } catch (err) {
