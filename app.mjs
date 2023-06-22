@@ -370,6 +370,7 @@ const cmdFiatConv = (systemData, _, relay, ev) => {
       jpy = btc * systemData.currencyData.btc2jpy;
 
       message = `₿${btc} は 日本円で${jpy}、USドルで${usd}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
+      break;
     case "jpy":
       jpy = price;
       usd = jpy / systemData.currencyData.usd2jpy;
