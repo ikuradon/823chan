@@ -946,6 +946,7 @@ const main = async () => {
   subAll.on("event", (ev) => {
     if (systemData.responseTimer === undefined)
       systemData.responseTimer = 0;
+    let responseFlag = false;
     const timerDuration = currUnixtime() - systemData.responseTimer;
     const COOLDOWN_TIMER = 5 * 60;
     if (timerDuration >= COOLDOWN_TIMER
@@ -955,16 +956,18 @@ const main = async () => {
         ev.content.match(/^823chan$/i) ||
         ev.content.match(/^やぶみちゃん$/i)
       ) {
+        responseFlag = true;
         const post = composePost("👋");
         publishToRelay(relay, post);
       } else if (
-        ev.content.match(/ヤッブミーン/i) ||
-        ev.content.match(/ﾔｯﾌﾞﾐｰﾝ/i)
+        ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)
       ) {
-        const post = composePost("＼ﾊｰｲ🙌／");
+        responseFlag = true;
+        const post = composePost("＼ﾊｰｲ!🙌／");
         publishToRelay(relay, post);
       }
-      systemData.responseTimer = currUnixtime();
+      if (responseFlag)
+        systemData.responseTimer = currUnixtime();
     }
   });
 
