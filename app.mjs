@@ -16,7 +16,6 @@ import * as readline from "node:readline";
 
 import * as cron from "node-cron";
 import StaticMaps from "staticmaps";
-import sharp from "sharp";
 import axios from "axios";
 import FormData from "form-data";
 import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks, parse } from "date-fns";
@@ -516,9 +515,6 @@ const cmdLocation = async (_systemData, _userData, relay, ev) => {
 }
 
 const messageWeatherForecast = async (location) => {
-  if (!location)
-    return false;
-
   let message = "";
   try {
     const geoDatas = await getLocation(location);
@@ -653,25 +649,56 @@ const getLatestHimawariTime = async () => {
 
 const generateHimawariImage = async (fdData) => {
   const tileBaseUrl = `https://www.jma.go.jp/bosai/himawari/data/satimg/${fdData.basetime}/fd/${fdData.validtime}/B13/TBB/`;
+  const tileOverlayUrl = "https://www.jma.go.jp/tile/jma/sat/";
 
-  const tileUrl = tileBaseUrl + "{z}/{x}/{y}.jpg";
   const options = {
     width: 1024,
     height: 1024,
-    tileUrl: tileUrl,
+    tileLayers: [
+      { tileUrl: tileBaseUrl + "{z}/{x}/{y}.jpg" },
+      { tileUrl: tileOverlayUrl + "{z}/{x}/{y}.png" },
+    ],
   }
 
   const map = new StaticMaps(options);
   await map.render([137, 34.5], 5);
-  const mapBuffer = await map.image.buffer("image/png", { quality: 75 });
-  const mapImage = sharp(mapBuffer);
+  const mapBuffer = await map.image.buffer("image/webp");
 
-  const mergedBuffer = await mapImage.composite([{
-    input: "./overlay.png",
-  }]).toFormat("webp").toBuffer();
-
-  const url = await uploadToChevereto("himawari-" + fdData.basetime, mergedBuffer);
+  const url = await uploadToChevereto("himawari-" + fdData.basetime, mapBuffer);
   return url;
+};
+
+const generateRadarImage = async (targetTime, coordinates) => {
+  const ZOOM_LEVEL = 9;
+  const tileBaseUrl = "https://www.jma.go.jp/tile/gsi/pale/";
+  const tileBorderUrl = "https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/";
+  const tileRadarUrl = `https://www.jma.go.jp/bosai/jmatile/data/nowc/${targetTime.basetime}/none/${targetTime.validtime}/surf/hrpns/`;
+
+  const options = {
+    width: 1024,
+    height: 1024,
+    tileLayers: [
+      {
+        tileUrl: tileBaseUrl + "{z}/{x}/{y}.png",
+      },
+      {
+        tileUrl: tileBorderUrl + "{z}/{x}/{y}.png",
+      },
+      {
+        tileUrl: tileRadarUrl + "{z}/{x}/{y}.png",
+      },
+    ],
+  };
+
+  const map = new StaticMaps(options);
+
+  await map.render([coordinates[0], coordinates[1]], ZOOM_LEVEL);
+  const mapBuffer = await map.image.buffer("image/webp");
+
+  const url = await uploadToChevereto("radar-" + currUnixtime(), mapBuffer);
+  return url;
+}
+
 const getLatestRadarTime = async () => {
   const targetTimes = (await axios.get("https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json")).data;
   return targetTimes[0];
