@@ -672,18 +672,42 @@ const generateHimawariImage = async (fdData) => {
 
   const url = await uploadToChevereto("himawari-" + fdData.basetime, mergedBuffer);
   return url;
-};
+const getLatestRadarTime = async () => {
+  const targetTimes = (await axios.get("https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json")).data;
+  return targetTimes[0];
+}
+
+const messageWeatherRadar = async (location) => {
+  let message = "";
+  try {
+    const geoDatas = await getLocation(location);
+    if (!geoDatas.length)
+      return "知らない場所です…";
+    const geoData = geoDatas[0];
+
+    console.log(geoData);
+    message += `${geoData.properties.title}付近の雨雲の状態です！ (気象庁情報)\n`;
+    const coordinates = geoData.geometry.coordinates;
+    const targetTime = await getLatestRadarTime();
+    message += await generateRadarImage(targetTime, coordinates);
+  } catch (e) {
+    console.log(e);
+    message = "何か問題が発生しました…";
+  }
+  return message;
+}
 
 const cmdWeather = async (systemData, _userData, relay, ev) => {
   console.log("発火(天気): " + ev.content);
   const args = ev.content.match(REGEX_WEATHER)[2].split(" ") || "";
 
   let message = "";
+  let location = "";
 
   const command = args[0] || "";
   switch (command) {
     case "forecast":
-      const location = args.splice(1).join(" ");
+      location = args.splice(1).join(" ");
       if (!!location)
         message = await messageWeatherForecast(location);
       else
@@ -696,6 +720,14 @@ const cmdWeather = async (systemData, _userData, relay, ev) => {
 
     case "himawari":
       message = await messageWeatherHimawari(systemData);
+      break;
+
+    case "radar":
+      location = args.splice(1).join(" ");
+      if (!!location)
+        message = await messageWeatherRadar(location);
+      else
+        message = "場所が不明です…";
       break;
 
     default:
@@ -865,6 +897,7 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   message += "(weather) himawari : 現在の気象衛星ひまわりの画像を表示します！(気象庁情報)\n";
   message += "ひまわり : 上のエイリアスです！\n";
 
+  message += "(weather) radar <場所>: 指定された場所の現在の雨雲の画像を表示します！(気象庁情報)\n";
 
   message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
