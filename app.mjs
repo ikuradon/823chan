@@ -730,9 +730,9 @@ const cmdInfo = (_systemData, userData, relay, ev) => {
       userName = userInfo.display_name || userInfo.displayName || undefined;
     }
     if (userName != undefined)
-      message = `こんにちは！ ${userName}さん！\n`;
+      message = `${greetingMessage} ${userName}さん！\n`;
     else
-      message = `こんにちは！ (まだkind:0を受信していません)\n`;
+      message = `${greetingMessage} (まだkind:0を受信していません)\n`;
 
     message += "やぶみが把握しているあなたのイベントは以下の通りです。 (day, week, month, total)\n"
 
@@ -842,7 +842,7 @@ const cmdReboot = (_systemData, _userData, relay, ev) => {
 const cmdHelp = (_systemData, _userData, relay, ev) => {
   console.log("発火(ヘルプ): " + ev.content);
   let message = "";
-  message += "こんにちは！やぶみちゃんです！\n";
+  message += `${greetingMessage}　やぶみちゃんです！\n`;
   message += "現在は出来ることは以下の通りです！\n";
   message += "(blocktime) : 現在のブロックタイムを表示します！\n";
   message += "(count|カウント) : カウントを呼び出した回数を表示します！\n";
