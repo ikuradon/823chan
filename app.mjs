@@ -399,6 +399,50 @@ const cmdBlocktime = (_systemData, _userData, relay, ev) => {
   });
   return true;
 }
+const cmdFiatConv = (systemData, _, relay, ev) => {
+  console.log("発火(通貨変換): " + ev.content);
+  const args = ev.content.match(REGEX_FIATCONV)[2].split(" ") || "";
+  const command = (args[0] || "").match(/(yen|jpy)/i) ? "jpy"
+    : (args[0] || "").match(/(dollar|usd)/i) ? "usd"
+      : (args[0] || "").match(/(sat)/i) ? "sat"
+        : (args[0] || "").match(/(btc|bitcoin)/i) ? "btc" : "";
+  const price = Number(args.splice(1).join(" "));
+
+  const updateAt = format(fromUnixTime(systemData.currencyData.updateAt), "yyyy-MM-dd HH:mm");
+  let sat, btc, usd, jpy;
+
+  let message = "わかりませんでした…";
+  switch (command) {
+    case "sat":
+      sat = price;
+      usd = sat2btc(sat) * systemData.currencyData.btc2usd;
+      jpy = sat2btc(sat) * systemData.currencyData.btc2jpy;
+
+      message = `丰${sat} は 日本円で${jpy}、USドルで${usd}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
+      break;
+    case "btc":
+      btc = price;
+      usd = btc * systemData.currencyData.btc2usd;
+      jpy = btc * systemData.currencyData.btc2jpy;
+
+      message = `₿${btc} は 日本円で${jpy}、USドルで${usd}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
+    case "jpy":
+      jpy = price;
+      usd = jpy / systemData.currencyData.usd2jpy;
+      sat = btc2sat(jpy / systemData.currencyData.btc2jpy);
+      message = `￥${jpy} は Satoshiで${sat}、USドルで${usd}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
+      break;
+    case "usd":
+      usd = price;
+      jpy = usd * systemData.currencyData.usd2jpy;
+      sat = btc2sat(usd / systemData.currencyData.btc2usd);
+      message = `＄${usd} は Satoshiで${sat}、日本円で${jpy}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
+      break;
+  }
+  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  publishToRelay(relay, replyPost);
+  return true;
+}
 
 const cmdSatConv = (systemData, _, relay, ev) => {
   if (systemData.currencyData.updateAt === undefined) return false;
@@ -926,7 +970,7 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
 
   message += "(weather) radar <場所>: 指定された場所の現在の雨雲の画像を表示します！(気象庁情報)\n";
 
-  message += "(satconv|usdconv|jpyconv) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
+  message += "(fiatconv) (sat|jpy|usd) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
   message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
   message += "(unixtime) : 現在のUnixTimeを表示します！\n";
 
@@ -976,6 +1020,7 @@ const REGEX_WEATHER_ALT_HIMAWARI = /(ひまわり)/i
 
 const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
 
+const REGEX_FIATCONV = /\b(fiatconv)\s(.+)/i;
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
 const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
@@ -1141,6 +1186,7 @@ const main = async () => {
     [REGEX_LOGINBONUS, true, cmdLoginbonus],
     [REGEX_UNIXTIME, true, cmdUnixtime],
     [REGEX_BLOCKTIME, true, cmdBlocktime],
+    [REGEX_FIATCONV, true, cmdFiatConv],
     [REGEX_SATCONV, true, cmdSatConv],
     [REGEX_JPYCONV, true, cmdJpyConv],
     [REGEX_USDCONV, true, cmdUsdConv],
