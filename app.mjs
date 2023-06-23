@@ -1050,7 +1050,7 @@ const main = async () => {
       systemData.responseTimer = 0;
     let responseFlag = false;
     const timerDuration = currUnixtime() - systemData.responseTimer;
-    const COOLDOWN_TIMER = 5 * 60;
+    const COOLDOWN_TIMER = 30;
     if (timerDuration >= COOLDOWN_TIMER
     ) {
       if (
