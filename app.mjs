@@ -146,6 +146,38 @@ const strfryGetMetadata = (pubkey) => {
   return JSON.parse(userInfo || "{}");
 }
 
+const bcGetOutput = async (input) => {
+  const TIMEOUT = 5 * 1000;
+  const execParams = ["-l", "-s"];
+
+  const execOpts = {
+    stdio: [
+      "pipe",
+      "pipe",
+      "ignore",
+    ]
+  };
+
+  const strfryProcess = childProcess.spawn("bc", execParams, execOpts);
+
+  setTimeout(() => strfryProcess.kill(15), TIMEOUT);
+
+  const rl = readline.createInterface({
+    input: strfryProcess.stdout,
+    crlfDelay: Infinity,
+  });
+  strfryProcess.stdin.write(`${input}\n`);
+
+  strfryProcess.stdin.end();
+
+  let output = "";
+  for await (const line of rl) {
+    output += `${line}\n`;
+  }
+
+  return output.trim();
+};
+
 const btc2sat = (btc) => {
   return btc * 100000000;
 }
@@ -808,6 +840,23 @@ const cmdWeather = async (systemData, _userData, relay, ev) => {
   return true;
 }
 
+const cmdCalculator = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(電卓): " + ev.content);
+  const formula = ev.content.match(REGEX_CALCULATOR)[2] || "";
+  let message = "式が不明です…";
+  if (!!formula)
+    message = await bcGetOutput(formula);
+
+  if (!message)
+    message = "計算できませんでした…"
+  else
+    message = `結果は以下の通りです！\n${message}`;
+
+  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
 const cmdInfo = (_systemData, userData, relay, ev) => {
   console.log("発火(情報): " + ev.content);
   if (userData.infoTimer === undefined)
@@ -939,36 +988,62 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   let message = "";
   message += `${greetingMessage()}　やぶみちゃんです！\n`;
   message += "現在は出来ることは以下の通りです！\n";
-  message += "(blocktime) : 現在のブロックタイムを表示します！\n";
-  message += "(count|カウント) : カウントを呼び出した回数を表示します！\n";
-  message += "(dice) [ダイスの数と面の数] : さいころを振ります！\n";
-  message += "(fav|ふぁぼ|ファボ|祝福|星) : リアクションを送信します！\n";
-  message += "(help|ヘルプ) : このメッセージを表示します！\n";
-  message += "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n";
-  message += "(loginbonus|ログインボーナス|ログボ|ろぐぼ) : ログインボーナスです！\n";
-  message += "(ping) : pong!と返信します！\n";
 
-  message += "(remind) <希望時間> : 希望時間にリプライを送信します！\n";
-  message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
-  message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
+  {
+    message += "(unixtime) : 現在のUnixTimeを表示します！\n";
+    message += "(blocktime) : 現在のブロックタイムを表示します！\n";
+  }
 
-  message += "(location) <場所> : 指定された場所を探します！\n";
-  message += "<場所>はどこ : 上のエイリアスです！\n";
+  {
+    message += "(count|カウント) : カウントを呼び出した回数を表示します！\n";
+    message += "(loginbonus|ログインボーナス|ログボ|ろぐぼ) : ログインボーナスです！\n";
+  }
 
-  message += "(weather) forecast <場所> : 指定された場所の天気をお知らせします！(気象庁情報)\n";
-  message += "<場所>の天気 : 上のエイリアスです！\n";
+  {
+    message += "(ping) : pong!と返信します！\n";
+    message += "(fav|ふぁぼ|ファボ|祝福|星) : リアクションを送信します！\n";
+  }
 
-  message += "(weather) map : 現在の天気図を表示します！(気象庁情報)\n";
-  message += "天気図 : 上のエイリアスです！\n";
+  {
+    message += "(remind) <希望時間> : 希望時間にリプライを送信します！\n";
+    message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
+    message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
+  }
 
-  message += "(weather) himawari : 現在の気象衛星ひまわりの画像を表示します！(気象庁情報)\n";
-  message += "ひまわり : 上のエイリアスです！\n";
+  {
+    message += "(dice) [ダイスの数と面の数] : さいころを振ります！\n";
+  }
 
-  message += "(weather) radar <場所>: 指定された場所の現在の雨雲の画像を表示します！(気象庁情報)\n";
+  {
+    message += "(fiatconv) (sat|jpy|usd) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
+  }
 
-  message += "(fiatconv) (sat|jpy|usd) <金額> : 通貨変換をします！(Powered by CoinGecko)\n";
-  message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
-  message += "(unixtime) : 現在のUnixTimeを表示します！\n";
+  {
+    message += "(location) <場所> : 指定された場所を探します！\n";
+    message += "<場所>はどこ : 上のエイリアスです！\n";
+  }
+
+  {
+    message += "(weather) forecast <場所> : 指定された場所の天気をお知らせします！(気象庁情報)\n";
+    message += "<場所>の天気 : 上のエイリアスです！\n";
+
+    message += "(weather) map : 現在の天気図を表示します！(気象庁情報)\n";
+    message += "天気図 : 上のエイリアスです！\n";
+
+    message += "(weather) himawari : 現在の気象衛星ひまわりの画像を表示します！(気象庁情報)\n";
+    message += "ひまわり : 上のエイリアスです！\n";
+    message += "(weather) radar <場所>: 指定された場所の現在の雨雲の画像を表示します！(気象庁情報)\n";
+  }
+
+  {
+    message += "(calc) <式> : 入力された式を計算します！\n";
+  }
+
+  {
+    message += "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n";
+    message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
+    message += "(help|ヘルプ) : このメッセージを表示します！\n";
+  }
 
   const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
   publishToRelay(relay, replyPost);
@@ -1020,6 +1095,8 @@ const REGEX_FIATCONV = /\b(fiatconv)\s(.+)/i;
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
 const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
+
+const REGEX_CALCULATOR = /(calc)\s(.*)/is;
 
 const REGEX_INFO = /(\binfo\b|情報)/i;
 const REGEX_STATUS = /(\bstatus\b|ステータス)(?=[\s,.:;"']|$)/i;
@@ -1193,7 +1270,7 @@ const main = async () => {
     [REGEX_WEATHER_ALT_FORECAST, true, cmdWeatherAltForecast],
     [REGEX_WEATHER_ALT_MAP, true, cmdWeatherAltMap],
     [REGEX_WEATHER_ALT_HIMAWARI, true, cmdWeatherAltHimawari],
-
+    [REGEX_CALCULATOR, true, cmdCalculator],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
     [REGEX_REBOOT, true, cmdReboot],
