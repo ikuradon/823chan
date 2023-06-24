@@ -1130,11 +1130,7 @@ const main = async () => {
     const COOLDOWN_TIMER = 30;
     if (timerDuration >= COOLDOWN_TIMER
     ) {
-      if (
-        ev.content.match(/^823$/i) ||
-        ev.content.match(/^823chan$/i) ||
-        ev.content.match(/^やぶみちゃん$/i)
-      ) {
+      if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i)) {
         responseFlag = true;
         const post = composePost("👋");
         publishToRelay(relay, post);
