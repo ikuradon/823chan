@@ -1123,13 +1123,14 @@ const main = async () => {
 
   const subAll = relay.sub([{ kinds: [1], since: currUnixtime() }]);
   subAll.on("event", (ev) => {
+    if (ev.pubkey === getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)) return; // 自分の投稿は無視する
+
     if (systemData.responseTimer === undefined)
       systemData.responseTimer = 0;
     let responseFlag = false;
     const timerDuration = currUnixtime() - systemData.responseTimer;
     const COOLDOWN_TIMER = 30;
-    if (timerDuration >= COOLDOWN_TIMER
-    ) {
+    if (timerDuration >= COOLDOWN_TIMER) {
       if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i)) {
         responseFlag = true;
         const post = composePost("👋");
