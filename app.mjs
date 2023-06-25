@@ -95,21 +95,32 @@ const publishToRelay = (relay, ev) => {
 };
 
 // strfryへコマンド実行する
-const _strfryScan = async (reqQuery) => {
+const strfryScan = async (reqQuery) => {
   const execParams = [
     "scan",
     JSON.stringify(reqQuery)
   ];
 
-  const strfryProcess = childProcess.spawn(ENVIRONMENT.STRFRY_EXEC_PATH, execParams);
+  const execOpts = {
+    stdio: [
+      "ignore",
+      "pipe",
+      "ignore",
+    ]
+  };
+
+  const strfryProcess = childProcess.spawn(ENVIRONMENT.STRFRY_EXEC_PATH, execParams, execOpts);
   const rl = readline.createInterface({
     input: strfryProcess.stdout,
     crlfDelay: Infinity,
   });
 
+  const output = [];
   for await (const line of rl) {
-    console.log(line);
+    output.push(line);
   }
+
+  return output;
 };
 
 /**
@@ -916,7 +927,44 @@ const cmdInfo = (_systemData, userData, relay, ev) => {
   return true;
 }
 
-const cmdStatus = (systemData, _, relay, ev) => {
+const countUserEvents = (events) => {
+  const users = {};
+  for (const event of events) {
+    const eventData = JSON.parse(event);
+    const userId = eventData.pubkey;
+    if (users[userId])
+      users[userId]++;
+    else
+      users[userId] = 1;
+  }
+  const userArray = Object.keys(users).map((k) => ({ key: k, value: users[k] }));
+  userArray.sort((left, right) => right.value - left.value);
+
+  return userArray;
+};
+
+const generateRanking = (input) => {
+  const rankingHeader = ["🥇", "🥈", "🥉", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟"];
+
+  const userArray = input.splice(0, 10);
+
+  let message = "";
+  for (let index = 0; index < userArray.length; index++) {
+    const user = userArray[index];
+
+    const metadata = strfryGetMetadata(user.key);
+    // console.log(metadata);
+    const userInfo = JSON.parse(metadata.content);
+    let userName = userInfo.display_name || userInfo.displayName || undefined;
+    if (userName != undefined)
+      message += `${rankingHeader[index]} ${user.value} ${userName} (${user.key})\n`;
+    else
+      message += `${rankingHeader[index]} ${user.value} ${user.key}\n`;
+  }
+  return message.trim();
+}
+
+const cmdStatus = async (systemData, _, relay, ev) => {
   console.log("発火(ステータス): " + ev.content);
   if (systemData.statusTimer === undefined)
     systemData.statusTimer = 0;
@@ -927,7 +975,17 @@ const cmdStatus = (systemData, _, relay, ev) => {
 
   if (timerDuration >= COOLDOWN_TIMER) {
     // 前回から5分経っているので処理する
-    let message = "やぶみが把握している全てのユーザーのイベントは以下の通りです。 (day, week, month, total)\n"
+    let message = "";
+
+    message += "やぶみリレーの統計情報です！\n";
+
+    const events = await strfryScan({ kinds: [1,], since: getUnixTime(subDays(new Date(), 1)) });
+    const userList = countUserEvents(events);
+
+    message += `直近24時間でノート(kind: 1)を二回以上投稿したユーザー数は${userList.filter(record => record.value > 1).length}でした！\n`;
+    message += "\n";
+
+    message += "全てのユーザーのイベントは以下の通りです。 (day, week, month, total)\n";
 
     const countMetadataDay = strfryCount({ kinds: [0], since: getUnixTime(subDays(new Date(), 1)) });
     const countMetadataWeek = strfryCount({ kinds: [0], since: getUnixTime(subWeeks(new Date(), 1)) });
@@ -1166,6 +1224,21 @@ const main = async () => {
     console.log("SIGHUP");
     saveMemory(memoryData);
     process.exit(0); //プロセスを正常終了させる
+  });
+
+  cron.schedule("0 0 * * *", async () => {
+    console.log("ランキング生成");
+    const currentDay = new Date(new Date().setHours(0, 0, 0, 0));
+    const yesterDay = subDays(currentDay, 1);
+    const events = await strfryScan({ kinds: [1, 6, 7,], since: getUnixTime(yesterDay), until: getUnixTime(currentDay - 1) });
+    const userListKind1 = countUserEvents(events.filter(event => JSON.parse(event).kind === 1)).splice(0, 10);
+    const userListKind6 = countUserEvents(events.filter(event => JSON.parse(event).kind === 6)).splice(0, 10);
+    const userListKind7 = countUserEvents(events.filter(event => JSON.parse(event).kind === 7)).splice(0, 10);
+
+    console.log(`${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(currentDay - 1, "yyyy-MM-dd HH:mm")}`)
+    publishToRelay(relay, composePost(`ノート(kind: 1)ランキングです！\n集計期間：${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(currentDay - 1, "yyyy-MM-dd HH:mm")}\n\n${generateRanking(userListKind1)}`));
+    publishToRelay(relay, composePost(`リポスト(kind: 6)ランキングです！\n集計期間：${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(currentDay - 1, "yyyy-MM-dd HH:mm")}\n\n${generateRanking(userListKind6)}`));
+    publishToRelay(relay, composePost(`リアクション(kind: 7)ランキングです！\n集計期間：${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(currentDay - 1, "yyyy-MM-dd HH:mm")}\n\n${generateRanking(userListKind7)}`));
   });
 
   cron.schedule("*/5 * * * *", () => {
