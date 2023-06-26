@@ -488,11 +488,11 @@ const cmdRemind = (systemData, _, relay, ev) => {
   const REGEX_REMIND_DELETE = /^(del)\s(.*)$/i
   if (reminderDateText.match(REGEX_REMIND_LIST)) {
     message = "あなた宛に現在登録されている通知予定は以下の通りです！\n";
-    const filterdList = reminderList.filter(record => (record.eventPubkey === ev.pubkey));
-    if (filterdList.length === 0) {
+    const filteredList = reminderList.filter(record => (record.eventPubkey === ev.pubkey));
+    if (filteredList.length === 0) {
       message += "見つかりませんでした…";
     } else {
-      filterdList.forEach(record => {
+      filteredList.forEach(record => {
         message += format(new Date(record.remindAt), "yyyy-MM-dd HH:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
       });
     }
@@ -534,9 +534,9 @@ const cmdLocation = async (_systemData, _userData, relay, ev) => {
   const location = ev.content.match(REGEX_LOCATION) ? ev.content.match(REGEX_LOCATION)[2] : ev.content.match(REGEX_LOCATION_ALT) ? ev.content.match(REGEX_LOCATION_ALT)[1] : "";
   let message = "わかりませんでした…";
   if (!!location) {
-    const geoDatas = await getLocation(location);
-    if (!!geoDatas.length) {
-      const geoData = geoDatas[0];
+    const geoDataItems = await getLocation(location);
+    if (!!geoDataItems.length) {
+      const geoData = geoDataItems[0];
       message = `${location}は${geoData.properties.title}にあるみたいです！`;
     }
   }
@@ -549,10 +549,10 @@ const cmdLocation = async (_systemData, _userData, relay, ev) => {
 const messageWeatherForecast = async (location) => {
   let message = "";
   try {
-    const geoDatas = await getLocation(location);
-    if (!geoDatas.length)
+    const geoDataItems = await getLocation(location);
+    if (!geoDataItems.length)
       return "知らない場所です…";
-    const geoData = geoDatas[0];
+    const geoData = geoDataItems[0];
 
     console.log(geoData);
     message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
@@ -726,8 +726,8 @@ const uploadToChevereto = async (title, buffer) => {
 };
 
 const getLatestHimawariTime = async () => {
-  const fdDatas = (await axios.get("https://www.jma.go.jp/bosai/himawari/data/satimg/targetTimes_fd.json")).data;
-  return fdDatas.slice(-1)[0];
+  const fdDataItems = (await axios.get("https://www.jma.go.jp/bosai/himawari/data/satimg/targetTimes_fd.json")).data;
+  return fdDataItems.slice(-1)[0];
 }
 
 const generateHimawariImage = async (fdData) => {
@@ -790,10 +790,10 @@ const getLatestRadarTime = async () => {
 const messageWeatherRadar = async (location) => {
   let message = "";
   try {
-    const geoDatas = await getLocation(location);
-    if (!geoDatas.length)
+    const geoDataItems = await getLocation(location);
+    if (!geoDataItems.length)
       return "知らない場所です…";
-    const geoData = geoDatas[0];
+    const geoData = geoDataItems[0];
 
     console.log(geoData);
     message += `${geoData.properties.title}付近の雨雲の状態です！ (気象庁情報)\n`;
