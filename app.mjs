@@ -534,9 +534,9 @@ const cmdLocation = async (_systemData, _userData, relay, ev) => {
   const location = ev.content.match(REGEX_LOCATION) ? ev.content.match(REGEX_LOCATION)[2] : ev.content.match(REGEX_LOCATION_ALT) ? ev.content.match(REGEX_LOCATION_ALT)[1] : "";
   let message = "わかりませんでした…";
   if (!!location) {
-    const getDataItems = await getLocation(location);
-    if (!!getDataItems.length) {
-      const geoData = getDataItems[0];
+    const geoDataItems = await getLocation(location);
+    if (!!geoDataItems.length) {
+      const geoData = geoDataItems[0];
       message = `${location}は${geoData.properties.title}にあるみたいです！`;
     }
   }
@@ -549,10 +549,10 @@ const cmdLocation = async (_systemData, _userData, relay, ev) => {
 const messageWeatherForecast = async (location) => {
   let message = "";
   try {
-    const getDataItems = await getLocation(location);
-    if (!getDataItems.length)
+    const geoDataItems = await getLocation(location);
+    if (!geoDataItems.length)
       return "知らない場所です…";
-    const geoData = getDataItems[0];
+    const geoData = geoDataItems[0];
 
     console.log(geoData);
     message += `${geoData.properties.title}の天気です！ (気象庁情報)\n`;
@@ -790,10 +790,10 @@ const getLatestRadarTime = async () => {
 const messageWeatherRadar = async (location) => {
   let message = "";
   try {
-    const getDataItems = await getLocation(location);
-    if (!getDataItems.length)
+    const geoDataItems = await getLocation(location);
+    if (!geoDataItems.length)
       return "知らない場所です…";
-    const geoData = getDataItems[0];
+    const geoData = geoDataItems[0];
 
     console.log(geoData);
     message += `${geoData.properties.title}付近の雨雲の状態です！ (気象庁情報)\n`;
