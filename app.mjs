@@ -982,7 +982,12 @@ const cmdStatus = async (systemData, _, relay, ev) => {
     const events = await strfryScan({ kinds: [1,], since: getUnixTime(subDays(new Date(), 1)) });
     const userList = countUserEvents(events);
 
-    message += `直近24時間でノート(kind: 1)を二回以上投稿したユーザー数は${userList.filter(record => record.value > 1).length}でした！\n`;
+    message += `直近24時間でノート(kind: 1)を一回以上投稿したユーザー数は${userList.filter(record => record.value >= 1).length}でした！\n`;
+    message += `直近24時間でノート(kind: 1)を二回以上投稿したユーザー数は${userList.filter(record => record.value >= 2).length}でした！\n`;
+    message += `直近24時間でノート(kind: 1)を十回以上投稿したユーザー数は${userList.filter(record => record.value >= 10).length}でした！\n`;
+    message += `直近24時間でノート(kind: 1)を五〇回以上投稿したユーザー数は${userList.filter(record => record.value >= 50).length}でした！\n`;
+    message += `直近24時間でノート(kind: 1)を百回以上投稿したユーザー数は${userList.filter(record => record.value >= 100).length}でした！\n`;
+
     message += "\n";
 
     message += "全てのユーザーのイベントは以下の通りです。 (day, week, month, total)\n";
