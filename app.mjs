@@ -1252,30 +1252,36 @@ const main = async () => {
   });
 
   cron.schedule("*/5 * * * *", () => {
-    try {
-      // https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy
+    // https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy
 
-      const currencyData = systemData.currencyData || {};
+    const currencyData = systemData.currencyData || {};
 
-      axios.get("https://api.coingecko.com/api/v3/exchange_rates").then(response => {
+    axios.get("https://api.coingecko.com/api/v3/exchange_rates")
+      .then(response => {
         currencyData.btc2usd = Number(response.data.rates.usd.value);
         currencyData.btc2jpy = Number(response.data.rates.jpy.value);
         currencyData.updateAt = currUnixtime();
         systemData.currencyData = currencyData;
         memoryData.set("_", systemData);
         console.log("BTCの価格を更新");
+      })
+      .catch(error => {
+        const { status, statusText } = error.response;
+        console.log(`取得失敗: ${status} ${statusText}`);
       });
 
-      axios.get("https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy").then(response => {
+    axios.get("https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy")
+      .then(response => {
         currencyData.usd2jpy = Number(response.data.usd.jpy);
         currencyData.updateAt = currUnixtime();
         systemData.currencyData = currencyData;
         memoryData.set("_", systemData);
         console.log("USD/JPYの価格を更新");
+      })
+      .catch(error => {
+        const { status, statusText } = error.response;
+        console.log(`取得失敗: ${status} ${statusText}`);
       });
-    } catch (err) {
-      console.error(err);
-    }
   });
 
   cron.schedule("*/30 * * * * *", () => {
