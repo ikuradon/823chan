@@ -954,7 +954,7 @@ const generateRanking = (input) => {
 
     const metadata = strfryGetMetadata(user.key);
     // console.log(metadata);
-    const userInfo = JSON.parse(metadata.content);
+    const userInfo = JSON.parse(metadata.content || "{}");
     let userName = userInfo.display_name || userInfo.displayName || undefined;
     if (userName != undefined)
       message += `${rankingHeader[index]} ${user.value} ${userName} (${user.key})\n`;
