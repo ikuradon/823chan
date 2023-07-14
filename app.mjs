@@ -956,10 +956,11 @@ const generateRanking = (input) => {
     // console.log(metadata);
     const userInfo = JSON.parse(metadata.content || "{}");
     let userName = userInfo.display_name || userInfo.displayName || undefined;
+    const userNpub = nip19.npubEncode(user.key);
     if (userName != undefined)
-      message += `${rankingHeader[index]} ${user.value} ${userName} (${user.key})\n`;
+      message += `${rankingHeader[index]} ${user.value} ${userName} (nostr:${userNpub})\n`;
     else
-      message += `${rankingHeader[index]} ${user.value} ${user.key}\n`;
+      message += `${rankingHeader[index]} ${user.value} nostr:${userNpub}\n`;
   }
   return message.trim();
 }
