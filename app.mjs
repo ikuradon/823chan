@@ -20,6 +20,8 @@ import FormData from "form-data";
 import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks, parse } from "date-fns";
 import * as chrono from "chrono-node";
 import * as emoji from "node-emoji";
+import { MeiliSearch } from 'meilisearch'
+
 
 import * as ENVIRONMENT from "./environment.mjs";
 import * as CONST from "./const.mjs";
@@ -868,6 +870,51 @@ const cmdCalculator = async (_systemData, _userData, relay, ev) => {
   return true;
 }
 
+const client = new MeiliSearch({
+  host: 'http://meilisearch:7700',
+  apiKey: '99ebaa5184aecda61bd9fa569039cc8c1fc31b1dc88289f2355e857731bac1ef',
+});
+const index = client.index('events');
+
+const searchNotes = async (keyword) => {
+  const result = await index.search(
+    keyword,
+    {
+      filter: [
+        "kind = 1"
+      ],
+      limit: 5,
+    },
+  );
+  return result.hits;
+}
+
+const messageSearchNotes = async (keyword) => {
+  let message = "";
+  const result = await searchNotes(keyword);
+  result.forEach(data => {
+    message += `nostr:${nip19.noteEncode(data.id)}\n`;
+  });
+  return message;
+}
+
+const cmdSearch = async (_systemData, _userData, relay, ev) => {
+  console.log("発火(検索): " + ev.content);
+  const keyword = ev.content.match(REGEX_SEARCH)[2] || "";
+  let message = "よくわかりませんでした…";
+  if (!!keyword)
+    message = await messageSearchNotes(keyword);
+
+  if (!message)
+    message = "みつかりませんでした…"
+  else
+    message = `検索結果は以下の通りです！\n${message}`;
+
+  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
 const cmdInfo = (_systemData, userData, relay, ev) => {
   console.log("発火(情報): " + ev.content);
   if (userData.infoTimer === undefined)
@@ -1104,6 +1151,10 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   }
 
   {
+    message += "(search) <キーワード> : 入力されたキーワードをリレーから検索します！\n";
+  }
+
+  {
     message += "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n";
     message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
     message += "(help|ヘルプ) : このメッセージを表示します！\n";
@@ -1152,6 +1203,7 @@ const REGEX_WEATHER_ALT_FORECAST = /(\S+)の天気/i
 const REGEX_WEATHER_ALT_MAP = /(天気図)/i
 const REGEX_WEATHER_ALT_HIMAWARI = /(ひまわり)/i
 
+const REGEX_SEARCH = /\b(search)\s(.*)/i;
 
 const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
 
@@ -1353,6 +1405,7 @@ const main = async () => {
     [REGEX_WEATHER_ALT_MAP, true, cmdWeatherAltMap],
     [REGEX_WEATHER_ALT_HIMAWARI, true, cmdWeatherAltHimawari],
     [REGEX_CALCULATOR, true, cmdCalculator],
+    [REGEX_SEARCH, true, cmdSearch],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
     [REGEX_REBOOT, true, cmdReboot],
