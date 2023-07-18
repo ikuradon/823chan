@@ -1163,7 +1163,7 @@ const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
 const REGEX_CALCULATOR = /(calc)\s(.*)/is;
 
 const REGEX_INFO = /(\binfo\b|情報)/i;
-const REGEX_STATUS = /(\bstatus\b|ステータス)(?=[\s,.:;"']|$)/i;
+const REGEX_STATUS = /(\bstatus\b|ステータス)/i;
 
 const REGEX_REBOOT = /(\breboot\b|再起動)/i;
 const REGEX_HELP = /(\bhelp\b|ヘルプ)/i;
