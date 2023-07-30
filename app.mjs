@@ -1319,6 +1319,8 @@ const main = async () => {
         console.log("BTCの価格を更新");
       })
       .catch(error => {
+        if (error.code === "ECONNABORTED")
+          return console.log("取得失敗: タイムアウト");
         const { status, statusText } = error.response;
         console.log(`取得失敗: ${status} ${statusText}`);
       });
@@ -1332,6 +1334,8 @@ const main = async () => {
         console.log("USD/JPYの価格を更新");
       })
       .catch(error => {
+        if (error.code === "ECONNABORTED")
+          return console.log("取得失敗: タイムアウト");
         const { status, statusText } = error.response;
         console.log(`取得失敗: ${status} ${statusText}`);
       });
