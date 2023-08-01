@@ -484,11 +484,11 @@ const cmdRemind = (systemData, _, relay, ev) => {
   let message;
   const reminderList = systemData.reminderList || [];
 
-  const reminderDateText = ev.content.match(REGEX_REMIND)[2];
+  const reminderCommand = ev.content.match(REGEX_REMIND)[2];
 
   const REGEX_REMIND_LIST = /^(list)$/i
-  const REGEX_REMIND_DELETE = /^(del)\s(.*)$/i
-  if (reminderDateText.match(REGEX_REMIND_LIST)) {
+  const REGEX_REMIND_DELETE = /^(del)\s(.+)$/i
+  if (reminderCommand.match(REGEX_REMIND_LIST)) {
     message = "あなた宛に現在登録されている通知予定は以下の通りです！\n";
     const filteredList = reminderList.filter(record => (record.eventPubkey === ev.pubkey));
     if (filteredList.length === 0) {
@@ -498,18 +498,22 @@ const cmdRemind = (systemData, _, relay, ev) => {
         message += format(new Date(record.remindAt), "yyyy-MM-dd HH:mm") + " => nostr:" + nip19.noteEncode(record.eventId) + "\n";
       });
     }
-  } else if (reminderDateText.match(REGEX_REMIND_DELETE)) {
-    const deleteWord = reminderDateText.match(REGEX_REMIND_DELETE)[2].replace("nostr:", "");
+  } else if (reminderCommand.match(REGEX_REMIND_DELETE)) {
+    const deleteWord = reminderCommand.match(REGEX_REMIND_DELETE)[2].replace("nostr:", "");
     const deleteQuery = deleteWord.match(nip19.BECH32_REGEX) ? nip19.decode(deleteWord).data : deleteWord;
     systemData.reminderList = reminderList.filter(record => !(record.eventPubkey === ev.pubkey && record.eventId === deleteQuery));
     message = "指定されたノート( nostr:" + nip19.noteEncode(deleteQuery) + " )宛てにあなたが作成した通知を全て削除しました！";
   } else {
+    const matched = reminderCommand.match(/^(\S+)/);
+    const reminderDateText = matched[2];
+    const reminderContent = reminderCommand.substr(matched[0].length).trim();
     const reminderDate = chrono.parseDate(reminderDateText) || fromUnixTime(0);
     if (reminderDate > new Date()) {
       const record = {
         remindAt: reminderDate.getTime(),
         eventId: ev.id,
         eventPubkey: ev.pubkey,
+        content: reminderContent,
       };
       reminderList.push(record);
       systemData.reminderList = reminderList;
@@ -1351,7 +1355,8 @@ const main = async () => {
           id: record.eventId,
           pubkey: record.eventPubkey,
         };
-        const message = "((🔔))";
+        let message = "((🔔))";
+        if (record.content) message += " " + record.content;
         const replyPost = composeReplyPost(message, ev);
         publishToRelay(relay, replyPost);
       });
