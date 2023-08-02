@@ -1121,6 +1121,9 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
 
   {
     message += "(remind) <希望時間> : 希望時間にリプライを送信します！\n";
+    message += "    例) remind 2023/12/23 06:00:00\n";
+    message += "        remind 06:00:00\n";
+    message += "        remind 2023/12/23 06:00:00 !!!おきて\n";
     message += "  (remind) list : あなたが登録したリマインダ一覧を表示します！\n";
     message += "  (remind) del <イベントID(hex|note)> : 指定されたノート宛てにあなたが登録したリマインダを削除します！\n";
   }
