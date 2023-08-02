@@ -504,9 +504,9 @@ const cmdRemind = (systemData, _, relay, ev) => {
     systemData.reminderList = reminderList.filter(record => !(record.eventPubkey === ev.pubkey && record.eventId === deleteQuery));
     message = "指定されたノート( nostr:" + nip19.noteEncode(deleteQuery) + " )宛てにあなたが作成した通知を全て削除しました！";
   } else {
-    const matched = reminderCommand.match(/^(\d{4}[-/]\d{1,2}[-/]\d{1,2} \d{1,2}:\d{1,2}|\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}:\d{1,2})/);
-    const reminderDateText = matched[2];
-    const reminderContent = reminderCommand.substr(matched[0].length).trim();
+    const pos = reminderCommand.indexOf("!!!")
+    const reminderDateText = (pos == -1 ? reminderCommand : reminderCommand.substring(0, pos)).trim()
+    const reminderContent = (pos == -1 ? '' : reminderCommand.substring(pos + 3)).trim()
     const reminderDate = chrono.parseDate(reminderDateText) || fromUnixTime(0);
     if (reminderDate > new Date()) {
       const record = {
