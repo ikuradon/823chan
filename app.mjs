@@ -1212,7 +1212,7 @@ const REGEX_WEATHER_ALT_HIMAWARI = /(ひまわり)/i
 
 const REGEX_SEARCH = /\b(search)\s(.*)/i;
 
-const REGEX_REMIND = /\b(remind)\s(.+)\b/i;
+const REGEX_REMIND = /\b(remind)\s(.+)/i;
 
 const REGEX_FIATCONV = /\b(fiatconv)\s(.+)/i;
 const REGEX_SATCONV = /\b(satconv)\s(\d+)\b/i;
