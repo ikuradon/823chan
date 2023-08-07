@@ -29,6 +29,8 @@ import * as CONST from "./const.mjs";
 const currUnixtime = () => getUnixTime(new Date());
 const START_TIME = new Date();
 
+const redis = !!ENVIRONMENT.REDIS_URL ? new Redis(ENVIRONMENT.REDIS_URL) : null;
+
 /**
  * テキスト投稿イベント(リプライ)を組み立てる
  * @param {string} content 投稿内容
@@ -1085,6 +1087,26 @@ const cmdStatus = async (systemData, _, relay, ev) => {
   return true;
 }
 
+const cmdGeneratePassport = async (_systemData, _userData, relay, ev) => {
+  // TODO: 通行許可証作る
+  console.log("発火(通行許可証発行): " + ev.content);
+  let message = "正しく処理できませんでした…";
+  if (!!redis) {
+    const key = `passport-${ev.pubkey}`;
+    const value = addDays(new Date(), 7).getTime();
+    try {
+      await redis.set(key, value);
+      message = `通行許可証を発行しました！\n${format(value, "yyyy-MM-dd HH:mm")}まで国外から書き込み可能になります！`;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  publishToRelay(relay, replyPost);
+  return true;
+}
+
 const cmdReboot = (_systemData, _userData, relay, ev) => {
   console.log("発火(再起動): " + ev.content);
   if (ev.pubkey === ENVIRONMENT.ADMIN_HEX) {
@@ -1158,6 +1180,10 @@ const cmdHelp = (_systemData, _userData, relay, ev) => {
   }
 
   {
+    message += "(passport|許可証|パス) : 国外からでもアクセス出来るように許可証を発行します！\n";
+  }
+
+  {
     message += "(search) <キーワード> : 入力されたキーワードをリレーから検索します！\n";
   }
 
@@ -1220,6 +1246,8 @@ const REGEX_JPYCONV = /\b(jpyconv)\s(\d+)\b/i;
 const REGEX_USDCONV = /\b(usdconv)\s(\d+)\b/i;
 
 const REGEX_CALCULATOR = /(calc)\s(.*)/is;
+
+const REGEX_PASSPORT = /(\bpassport\b|許可証|パス)/i;
 
 const REGEX_INFO = /(\binfo\b|情報)/i;
 const REGEX_STATUS = /(\bstatus\b|ステータス)/i;
@@ -1417,6 +1445,7 @@ const main = async () => {
     [REGEX_WEATHER_ALT_MAP, true, cmdWeatherAltMap],
     [REGEX_WEATHER_ALT_HIMAWARI, true, cmdWeatherAltHimawari],
     [REGEX_CALCULATOR, true, cmdCalculator],
+    [REGEX_PASSPORT, true, cmdGeneratePassport],
     [REGEX_SEARCH, true, cmdSearch],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
