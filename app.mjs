@@ -13,18 +13,19 @@ import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import * as readline from "node:readline";
 
-import * as cron from "node-cron";
-import StaticMaps from "staticmaps";
 import axios from "axios";
-import FormData from "form-data";
-import { format, fromUnixTime, getUnixTime, subDays, subMonths, subWeeks, parse } from "date-fns";
 import * as chrono from "chrono-node";
+import { addDays, format, fromUnixTime, getUnixTime, parse, subDays, subMonths, subWeeks } from "date-fns";
+import FormData from "form-data";
+import { Redis } from "ioredis";
+import { MeiliSearch } from 'meilisearch';
+import * as cron from "node-cron";
 import * as emoji from "node-emoji";
-import { MeiliSearch } from 'meilisearch'
+import StaticMaps from "staticmaps";
 
 
-import * as ENVIRONMENT from "./environment.mjs";
 import * as CONST from "./const.mjs";
+import * as ENVIRONMENT from "./environment.mjs";
 
 const currUnixtime = () => getUnixTime(new Date());
 const START_TIME = new Date();
@@ -390,6 +391,7 @@ const cmdBlocktime = (_systemData, _userData, relay, ev) => {
   });
   return true;
 }
+
 const cmdFiatConv = (systemData, _, relay, ev) => {
   console.log("発火(通貨変換): " + ev.content);
   const args = ev.content.match(REGEX_FIATCONV)[2].split(" ") || "";
