@@ -775,10 +775,10 @@ const generateRadarImage = async (targetTime, coordinates) => {
         tileUrl: tileBaseUrl + "{z}/{x}/{y}.png",
       },
       {
-        tileUrl: tileBorderUrl + "{z}/{x}/{y}.png",
+        tileUrl: tileRadarUrl + "{z}/{x}/{y}.png",
       },
       {
-        tileUrl: tileRadarUrl + "{z}/{x}/{y}.png",
+        tileUrl: tileBorderUrl + "{z}/{x}/{y}.png",
       },
     ],
   };
@@ -1265,6 +1265,7 @@ const main = async () => {
   const relay = relayInit(ENVIRONMENT.RELAY_URL);
   relay.on("error", () => {
     console.error("接続に失敗…");
+    process.exit(0);
   });
 
   await relay.connect();
