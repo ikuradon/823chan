@@ -1288,13 +1288,13 @@ const main = async () => {
     if (timerDuration >= COOLDOWN_TIMER) {
       if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i)) {
         responseFlag = true;
-        const post = composePost("👋");
+        const post = composePost("👋", ev.created_at + 1);
         publishToRelay(relay, post);
       } else if (
         ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)
       ) {
         responseFlag = true;
-        const post = composePost("＼ﾊｰｲ!🙌／");
+        const post = composePost("＼ﾊｰｲ!🙌／", ev.created_at + 1);
         publishToRelay(relay, post);
       }
       if (responseFlag)
