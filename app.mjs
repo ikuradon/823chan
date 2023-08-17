@@ -681,7 +681,8 @@ const cmdWeatherAltMap = async (_systemData, _userData, relay, ev) => {
 
 const messageWeatherMap = async () => {
   let message = "現在の天気図です！\n";
-  message += "https://www.jma.go.jp/bosai/weather_map/data/png/" + (await axios.get("https://www.jma.go.jp/bosai/weather_map/data/list.json")).data.near.now[0];
+  const mapList = (await axios.get("https://www.jma.go.jp/bosai/weather_map/data/list.json")).data.near.now;
+  message += "https://www.jma.go.jp/bosai/weather_map/data/png/" + mapList.slice(-1)[0];
   return message;
 }
 
