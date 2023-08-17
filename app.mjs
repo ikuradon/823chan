@@ -1408,13 +1408,16 @@ const main = async () => {
 
   if (!!ENVIRONMENT.HEALTHCHECK_URL) {
     cron.schedule("* * * * *", () => {
-      try {
-        axios.get(ENVIRONMENT.HEALTHCHECK_URL).then(response => {
+      axios.get(ENVIRONMENT.HEALTHCHECK_URL)
+        .then(response => {
           console.log(response.data);
+        })
+        .catch(error => {
+          if (error.code === "ECONNABORTED")
+            return console.log("取得失敗: タイムアウト");
+          const { status, statusText } = error.response;
+          console.log(`取得失敗: ${status} ${statusText}`);
         });
-      } catch (err) {
-        console.error(err);
-      }
     });
   }
 
