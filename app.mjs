@@ -1290,13 +1290,19 @@ const main = async () => {
         responseFlag = true;
         const post = composePost("👋", ev.created_at + 1);
         publishToRelay(relay, post);
-      } else if (
-        ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)
-      ) {
+      } else if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)) {
         responseFlag = true;
-        const post = composePost("＼ﾊｰｲ!🙌／", ev.created_at + 1);
+        const message = "＼ﾊｰｲ!🙌／";
+        const post = (() => {
+          if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i))
+            return composeReplyPost(message, ev, ev.created_at + 1);
+          else
+            return composePost(message, ev.created_at + 1);
+        })();
+
         publishToRelay(relay, post);
       }
+
       if (responseFlag)
         systemData.responseTimer = currUnixtime();
     }
