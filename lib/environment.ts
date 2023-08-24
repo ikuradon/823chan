@@ -1,8 +1,8 @@
 import "dotenv/config";
 
 export const RELAY_URL = process.env.RELAY_URL || "wss://yabu.me";
-export const BOT_PRIVATE_KEY_HEX = process.env.PRIVATE_KEY_HEX;
-export const ADMIN_HEX = process.env.ADMIN_HEX;
+export const BOT_PRIVATE_KEY_HEX = process.env.PRIVATE_KEY_HEX || "";
+export const ADMIN_HEX = process.env.ADMIN_HEX || "";
 
 export const MEMORY_FILE = process.env.MEMORY_FILE || "./memory.json";
 
