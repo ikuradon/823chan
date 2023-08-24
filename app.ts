@@ -1288,9 +1288,9 @@ const countUserEvents = (events: Array<string>): Array<{ key: string, value: num
  * @returns {string}
  */
 const generateRanking = (userList: Array<{ key: string; value: number; }>): string => {
-    const rankingHeader = ["🥇", "🥈", "🥉", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟"];
+    const rankingHeader = ["🥇", "🥈", "🥉", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳"];
 
-    const userArray = userList.splice(0, 10);
+    const userArray = userList.splice(0, 20);
 
     let message = "";
     for (let index = 0; index < userArray.length; index++) {
