@@ -1725,9 +1725,9 @@ const main = async () => {
     const currentDay = new Date(new Date().setHours(0, 0, 0, 0));
     const yesterDay = subDays(currentDay, 1);
     const events = await strfryScan({ kinds: [1, 6, 7,], since: getUnixTime(yesterDay), until: getUnixTime(subSeconds(currentDay, 1)) });
-    const userListKind1 = countUserEvents(events.filter(event => JSON.parse(event).kind === 1)).splice(0, 10);
-    const userListKind6 = countUserEvents(events.filter(event => JSON.parse(event).kind === 6)).splice(0, 10);
-    const userListKind7 = countUserEvents(events.filter(event => JSON.parse(event).kind === 7)).splice(0, 10);
+    const userListKind1 = countUserEvents(events.filter(event => JSON.parse(event).kind === 1));
+    const userListKind6 = countUserEvents(events.filter(event => JSON.parse(event).kind === 6));
+    const userListKind7 = countUserEvents(events.filter(event => JSON.parse(event).kind === 7));
 
     console.log(`${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(subSeconds(currentDay, 1), "yyyy-MM-dd HH:mm")}`)
     await publishToRelay(relay, composePost(`ノート(kind: 1)ランキングです！\n集計期間：${format(yesterDay, "yyyy-MM-dd HH:mm")} → ${format(subSeconds(currentDay, 1), "yyyy-MM-dd HH:mm")}\n\n${generateRanking(userListKind1)}`));
