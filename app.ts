@@ -1445,7 +1445,7 @@ const cmdReboot = async (_systemData: SystemData, _userData: UserData, relay: Re
 const cmdHelp = async (_systemData: SystemData, _userData: UserData, relay: Relay, ev: Event): Promise<boolean> => {
   console.log("発火(ヘルプ): " + ev.content);
   let message = "";
-  message += `${greetingMessage()}　やぶおくんです！\n`;
+  message += `${greetingMessage()}　やぶみちゃんです！\n`;
   message += "現在は出来ることは以下の通りです！\n";
 
   {
@@ -1512,7 +1512,7 @@ const cmdHelp = async (_systemData: SystemData, _userData: UserData, relay: Rela
   {
     message += "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n";
     message += "(status|ステータス) : やぶみリレーの統計情報を表示します！\n";
-    message += "(help|ヘルプ) : このメッセージを表示します！\n";
+    message += "(help|ヘルプ|へるぷ) : このメッセージを表示します！\n";
   }
 
   const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
@@ -1583,7 +1583,7 @@ const REGEX_INFO = /(\binfo\b|情報)/i;
 const REGEX_STATUS = /(\bstatus\b|ステータス)/i;
 
 const REGEX_REBOOT = /(\breboot\b|再起動)/i;
-const REGEX_HELP = /(\bhelp\b|ヘルプ)/i;
+const REGEX_HELP = /(\bhelp\b|ヘルプ|へるぷ)/i;
 
 // メイン関数
 const main = async () => {
@@ -1610,15 +1610,15 @@ const main = async () => {
     const timerDuration = currUnixtime() - systemData.responseTimer;
     const COOLDOWN_TIMER = 30;
     if (timerDuration >= COOLDOWN_TIMER) {
-      if (ev.content.match(/^(820|820kun|やぶおくん|やぶおん)$/i)) {
+      if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i)) {
         responseFlag = true;
         const post = composePost("👋", ev.created_at + 1);
         await publishToRelay(relay, post);
-      } else if (ev.content.match(/(ヤッブオーン|ﾔｯﾌﾞｵｰﾝ|やっぶおーん)/i)) {
+      } else if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)) {
         responseFlag = true;
-        const message = "＼ｵｰｳ!🙌／";
+        const message = "＼ﾊｰｲ!🙌／";
         const post = (() => {
-          if (ev.content.match(/(ヤッブオーン|ﾔｯﾌﾞｵｰﾝ|やっぶおーん)(!|！)/i))
+          if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i))
             return composeReplyPost(message, ev, ev.created_at + 1);
           else
             return composePost(message, ev.created_at + 1);
