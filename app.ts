@@ -46,11 +46,12 @@ const redis = !!ENVIRONMENT.REDIS_URL ? new Redis(ENVIRONMENT.REDIS_URL) : null;
  * @param {Event} targetEvent リプライ対象のイベント
  * @param {number} created_at 作成するイベントの日時
  */
-const composeReplyPost = (content: string, targetEvent: Event, created_at: number = currUnixtime() + 1) => {
+const composeReplyPost = (content: string, targetEvent: Event) => {
   const tags = [];
   tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
   if (targetEvent.kind == 42)
     for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
+  const created_at: number = targetEvent != null ? targetEvent.createdAt + 1 : currUnixtime() + 1
   const ev = {
     kind: targetEvent.kind,
     content: content,
@@ -92,8 +93,6 @@ const composePost = (content: string, originalEvent: Event = null) => {
  * @param {Event} targetEvent リアクション対象のイベント
  */
 const composeReaction = (emoji: string, targetEvent: Event) => {
-  tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
-  for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
   const ev = {
     kind: 7,
     content: emoji,
@@ -315,7 +314,7 @@ const saveMemory = (memoryData: MemoryData) => {
 const cmdPing = async (_systemData: SystemData, _userData: UserData, relay: Relay, ev: Event): Promise<boolean> => {
   console.log("発火(ping): " + ev.content);
 
-  const replyPost = composeReplyPost("pong!", ev, ev.created_at + 1);
+  const replyPost = composeReplyPost("pong!", ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -345,9 +344,9 @@ const cmdDiceMulti = async (_systemData: SystemData, _userData: UserData, relay:
       rollNum += rollNow;
       rollList[i] = rollNow;
     }
-    replyPost = composeReplyPost(rollList.join("+") + "=" + rollNum + "が出ました", ev, ev.created_at + 1);
+    replyPost = composeReplyPost(rollList.join("+") + "=" + rollNum + "が出ました", ev);
   } else {
-    replyPost = composeReplyPost("数えられない…", ev, ev.created_at + 1);
+    replyPost = composeReplyPost("数えられない…", ev);
   }
   await publishToRelay(relay, replyPost);
   return true;
@@ -365,7 +364,7 @@ const cmdDiceSingle = async (_systemData: SystemData, _userData: UserData, relay
   console.log("発火(さいころ1D6): " + ev.content);
 
   const rollNum = Math.floor(Math.random() * 6) + 1;
-  const replyPost = composeReplyPost(rollNum + "が出ました", ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(rollNum + "が出ました", ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -382,7 +381,7 @@ const cmdReaction = async (_systemData: SystemData, _userData: UserData, relay: 
   console.log("発火(星投げ)");
 
   const reaction = emoji.random().emoji;
-  const replyPost = composeReplyPost(CONST.AA_LIST[Math.floor(Math.random() * CONST.AA_LIST.length)].replace("Z", reaction), ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(CONST.AA_LIST[Math.floor(Math.random() * CONST.AA_LIST.length)].replace("Z", reaction), ev);
   await publishToRelay(relay, replyPost);
   await publishToRelay(relay, composeReaction(reaction, ev));
 
@@ -405,7 +404,7 @@ const cmdCount = async (_systemData: SystemData, userData: UserData, relay: Rela
   } else {
     userData.counter = 1;
   }
-  const replyPost = composeReplyPost(userData.counter + "回目です", ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(userData.counter + "回目です", ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -465,7 +464,7 @@ const cmdLoginbonus = async (_systemData: SystemData, userData: UserData, relay:
     }
   }
   // メッセージ送信
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -481,7 +480,7 @@ const cmdLoginbonus = async (_systemData: SystemData, userData: UserData, relay:
 const cmdUnixtime = async (_systemData: SystemData, _userData: UserData, relay: Relay, ev: Event): Promise<boolean> => {
   console.log("発火(unixtime): " + ev.content);
 
-  const replyPost = composeReplyPost(`現在は${currUnixtime() + 1}です。`, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(`現在は${currUnixtime() + 1}です。`, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -506,7 +505,7 @@ const cmdBlocktime = async (_systemData: SystemData, _userData: UserData, relay:
     });
 
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
 
   return true;
@@ -563,7 +562,7 @@ const cmdFiatConv = async (systemData: SystemData, _userData: UserData, relay: R
       message = `＄${usd} は Satoshiで${sat}、日本円で${jpy}でした！\nupdate at: ${updateAt}\nPowered by CoinGecko`;
       break;
   }
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -587,7 +586,7 @@ const cmdSatConv = async (systemData: SystemData, _userData: UserData, relay: Re
   const jpy = sat2btc(sat) * currencyData.btc2jpy;
   const updateAt = format(fromUnixTime(currencyData.updateAt), "yyyy-MM-dd HH:mm");
   const message = `丰${sat} = ￥${jpy} ＄${usd}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -611,7 +610,7 @@ const cmdJpyConv = async (systemData: SystemData, _userData: UserData, relay: Re
   const sat = btc2sat(jpy / currencyData.btc2jpy);
   const updateAt = format(fromUnixTime(currencyData.updateAt), "yyyy-MM-dd HH:mm");
   const message = `￥${jpy} = 丰${sat} ＄${usd}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -635,7 +634,7 @@ const cmdUsdConv = async (systemData: SystemData, _userData: UserData, relay: Re
   const sat = btc2sat(usd / currencyData.btc2usd);
   const updateAt = format(fromUnixTime(currencyData.updateAt), "yyyy-MM-dd HH:mm");
   const message = `＄${usd} = 丰${sat} ￥${jpy}\nupdate at: ${updateAt}\nPowered by CoinGecko`;
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -691,7 +690,7 @@ const cmdRemind = async (systemData: SystemData, _userData: UserData, relay: Rel
       message = "正しく処理できませんでした…";
     }
   }
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message);
   await publishToRelay(relay, replyPost);
 
   return true;
@@ -729,7 +728,7 @@ const cmdLocation = async (_systemData: SystemData, _userData: UserData, relay: 
     }
   }
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -860,7 +859,7 @@ const cmdWeatherAltForecast = async (_systemData: SystemData, _userData: UserDat
   if (!!location)
     message = await messageWeatherForecast(location);
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -877,7 +876,7 @@ const cmdWeatherAltMap = async (_systemData: SystemData, _userData: UserData, re
   console.log("発火(天気図Alt): " + ev.content);
 
   const message = await messageWeatherMap();
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -934,7 +933,7 @@ const cmdWeatherAltHimawari = async (systemData: SystemData, _userData: UserData
   console.log("発火(天気Altひまわり): " + ev.content);
 
   const message = await messageWeatherHimawari(systemData);
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -1110,7 +1109,7 @@ const cmdWeather = async (systemData: SystemData, _userData: UserData, relay: Re
       break;
   }
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
 
   return true;
@@ -1136,7 +1135,7 @@ const cmdCalculator = async (_systemData: SystemData, _userData: UserData, relay
   else
     message = `結果は以下の通りです！\n${message}`;
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -1199,7 +1198,7 @@ const cmdSearch = async (_systemData: SystemData, _userData: UserData, relay: Re
   else
     message = `検索結果は以下の通りです！\n${message}`;
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -1259,12 +1258,12 @@ const cmdInfo = async (_systemData: SystemData, userData: UserData, relay: Relay
     const countEventTotal = strfryCount({ authors: [ev.pubkey] });
     message += `全てのイベント: ${countEventDay}, ${countEventWeek}, ${countEventMonth}, ${countEventTotal}`;
 
-    const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+    const replyPost = composeReplyPost(message, ev);
     await publishToRelay(relay, replyPost);
     userData.infoTimer = currUnixtime();
   } else {
     const timerCooldown = COOLDOWN_TIMER - timerDuration;
-    const replyPost = composeReplyPost("しばらく経ってからもう一度実行してください…\ncooldown: " + timerCooldown, ev, ev.created_at + 1);
+    const replyPost = composeReplyPost("しばらく経ってからもう一度実行してください…\ncooldown: " + timerCooldown, ev);
     await publishToRelay(relay, replyPost);
   }
 
@@ -1384,12 +1383,12 @@ const cmdStatus = async (systemData: SystemData, _userData: UserData, relay: Rel
     const countEventMonth = strfryCount({ since: getUnixTime(subMonths(new Date(), 1)) });
     const countEventTotal = strfryCount({});
     message += `全てのイベント: ${countEventDay}, ${countEventWeek}, ${countEventMonth}, ${countEventTotal}`;
-    const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+    const replyPost = composeReplyPost(message, ev);
     await publishToRelay(relay, replyPost);
     systemData.statusTimer = currUnixtime();
   } else {
     const timerCooldown = COOLDOWN_TIMER - timerDuration;
-    const replyPost = composeReplyPost("しばらく経ってからもう一度実行してください…\nCooldown: " + timerCooldown, ev, ev.created_at + 1);
+    const replyPost = composeReplyPost("しばらく経ってからもう一度実行してください…\nCooldown: " + timerCooldown, ev);
     await publishToRelay(relay, replyPost);
   }
 
@@ -1418,7 +1417,7 @@ const cmdGeneratePassport = async (_systemData: SystemData, _userData: UserData,
     }
   }
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
   return true;
 }
@@ -1434,11 +1433,11 @@ const cmdGeneratePassport = async (_systemData: SystemData, _userData: UserData,
 const cmdReboot = async (_systemData: SystemData, _userData: UserData, relay: Relay, ev: Event): Promise<boolean> => {
   console.log("発火(再起動): " + ev.content);
   if (ev.pubkey === ENVIRONMENT.ADMIN_HEX) {
-    const replyPost = composeReplyPost("💤", ev, ev.created_at + 1);
+    const replyPost = composeReplyPost("💤", ev);
     await publishToRelay(relay, replyPost);
     process.exit(0);
   } else {
-    const replyPost = composeReplyPost("誰？", ev, ev.created_at + 1);
+    const replyPost = composeReplyPost("誰？", ev);
     await publishToRelay(relay, replyPost);
   }
   return true;
@@ -1525,7 +1524,7 @@ const cmdHelp = async (_systemData: SystemData, _userData: UserData, relay: Rela
     message += "(help|ヘルプ|へるぷ) : このメッセージを表示します！\n";
   }
 
-  const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
 
   return true;
@@ -1549,7 +1548,7 @@ const cmdUnknown = async (_systemData: SystemData, userData: UserData, relay: Re
     const messageList = ["知らない", "わからない", "コマンド合ってる？"];
     const messageFooterList = ["…", "！", ""];
     const message = messageList[Math.floor(Math.random() * messageList.length)] + messageFooterList[Math.floor(Math.random() * messageFooterList.length)];
-    const replyPost = composeReplyPost(message, ev, ev.created_at + 1);
+    const replyPost = composeReplyPost(message, ev);
     await publishToRelay(relay, replyPost);
   }
   userData.failedTimer = currUnixtime();
@@ -1629,7 +1628,7 @@ const main = async () => {
         const message = "＼ﾊｰｲ!🙌／";
         const post = (() => {
           if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i))
-            return composeReplyPost(message, ev, ev.created_at + 1);
+            return composeReplyPost(message, ev);
           else
             return composePost(message, ev);
         })();
