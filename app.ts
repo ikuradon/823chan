@@ -47,13 +47,14 @@ const redis = !!ENVIRONMENT.REDIS_URL ? new Redis(ENVIRONMENT.REDIS_URL) : null;
  * @param {number} created_at 作成するイベントの日時
  */
 const composeReplyPost = (content: string, targetEvent: Event, created_at: number = currUnixtime() + 1) => {
+  const tags = [];
+  tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
+  if (targetEvent.kind == 42)
+    for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
   const ev = {
-    kind: 1,
+    kind: targetEvent.kind,
     content: content,
-    tags: [
-      ["e", targetEvent.id],
-      ["p", targetEvent.pubkey],
-    ],
+    tags: tags,
     created_at: created_at,
   };
 
@@ -64,13 +65,20 @@ const composeReplyPost = (content: string, targetEvent: Event, created_at: numbe
 /**
  * テキスト投稿イベントを組み立てる
  * @param {string} content
- * @param {number} created_at
+ * @param {Event} originalEvent オリジナルイベント
  */
-const composePost = (content: string, created_at: number = currUnixtime() + 1) => {
+const composePost = (content: string, originalEvent: Event = null) => {
+  const kind = originalEvent != null ? originalEvent.kind : 1;
+  const tags = [];
+  if (originalEvent != null && originalEvent.kind == 42) {
+    tags.push(['e', originalEvent.id])
+    for (let tag of originalEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
+  }
+  const created_at: number = originalEvent != null ? originalEvent.createdAt + 1 : currUnixtime() + 1
   const ev = {
-    kind: 1,
+    kind: kind,
     content: content,
-    tags: [],
+    tags: tags,
     created_at: created_at,
   }
 
@@ -84,6 +92,8 @@ const composePost = (content: string, created_at: number = currUnixtime() + 1) =
  * @param {Event} targetEvent リアクション対象のイベント
  */
 const composeReaction = (emoji: string, targetEvent: Event) => {
+  tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
+  for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
   const ev = {
     kind: 7,
     content: emoji,
@@ -1612,7 +1622,7 @@ const main = async () => {
     if (timerDuration >= COOLDOWN_TIMER) {
       if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i)) {
         responseFlag = true;
-        const post = composePost("👋", ev.created_at + 1);
+        const post = composePost("👋", ev);
         await publishToRelay(relay, post);
       } else if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i)) {
         responseFlag = true;
@@ -1621,7 +1631,7 @@ const main = async () => {
           if (ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i))
             return composeReplyPost(message, ev, ev.created_at + 1);
           else
-            return composePost(message, ev.created_at + 1);
+            return composePost(message, ev);
         })();
 
         await publishToRelay(relay, post);
