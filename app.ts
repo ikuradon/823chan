@@ -1780,7 +1780,7 @@ const main = async () => {
   cron.schedule("*/30 * * * * *", async () => {
     try {
       const reminderList = systemData.reminderList || [];
-      const current = currUnixtime();
+      const current = new Date().getTime();
       // 現在時刻より前のリマインダを探してforEachでリプライを送る
       reminderList.filter(record => (record.remindAt <= current)).forEach(async record => {
         const ev = {
