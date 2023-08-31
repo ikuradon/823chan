@@ -691,7 +691,7 @@ const cmdRemind = async (systemData: SystemData, _userData: UserData, relay: Rel
       message = "正しく処理できませんでした…";
     }
   }
-  const replyPost = composeReplyPost(message);
+  const replyPost = composeReplyPost(message, ev);
   await publishToRelay(relay, replyPost);
 
   return true;

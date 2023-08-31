@@ -13,6 +13,7 @@ interface Reminder {
   eventId: string
   eventPubkey: string
   content: string
+  tags: string[]
 }
 
 interface CurrencyData {
