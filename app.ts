@@ -48,9 +48,9 @@ const redis = !!ENVIRONMENT.REDIS_URL ? new Redis(ENVIRONMENT.REDIS_URL) : null;
  */
 const composeReplyPost = (content: string, targetEvent: Event) => {
   const tags = [];
-  tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
   if (targetEvent.kind == 42)
     for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
+  tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
   const created_at: number = targetEvent != null ? targetEvent.created_at + 1 : currUnixtime() + 1
   const ev = {
     kind: targetEvent.kind,
