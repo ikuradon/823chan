@@ -1799,7 +1799,7 @@ const main = async () => {
           kind: 1,
           tags: [],
           content: "",
-          created_at: 0,
+          created_at: currUnixtime(),
           sig: "",
         };
         let message = "((🔔))";
