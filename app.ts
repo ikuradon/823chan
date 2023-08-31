@@ -51,7 +51,7 @@ const composeReplyPost = (content: string, targetEvent: Event) => {
   tags.push(['e', targetEvent.id], ['p', targetEvent.pubkey])
   if (targetEvent.kind == 42)
     for (let tag of targetEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
-  const created_at: number = targetEvent != null ? targetEvent.createdAt + 1 : currUnixtime() + 1
+  const created_at: number = targetEvent != null ? targetEvent.created_at + 1 : currUnixtime() + 1
   const ev = {
     kind: targetEvent.kind,
     content: content,
@@ -75,7 +75,7 @@ const composePost = (content: string, originalEvent: Event = null) => {
     tags.push(['e', originalEvent.id])
     for (let tag of originalEvent.tags.filter((x: any[]) => x[0] === 'e')) tags.push(tag)
   }
-  const created_at: number = originalEvent != null ? originalEvent.createdAt + 1 : currUnixtime() + 1
+  const created_at: number = originalEvent != null ? originalEvent.created_at + 1 : currUnixtime() + 1
   const ev = {
     kind: kind,
     content: content,
