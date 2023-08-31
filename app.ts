@@ -1797,8 +1797,7 @@ const main = async () => {
         const ev = {
           id: record.eventId,
           pubkey: record.eventPubkey,
-
-          kind: record.eventKind,
+          kind: record.eventKind || 1,
           tags: record.eventTags || [],
           content: "",
           created_at: currUnixtime(),
