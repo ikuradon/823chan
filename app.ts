@@ -1609,7 +1609,7 @@ const main = async () => {
   console.log("リレーに接続しました");
 
 
-  const subAll = relay.sub([{ kinds: [1], since: currUnixtime() }]);
+  const subAll = relay.sub([{ kinds: [1, 42], since: currUnixtime() }]);
   subAll.on("event", async (ev) => {
     if (ev.pubkey === getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)) return; // 自分の投稿は無視する
 
