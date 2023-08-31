@@ -12,8 +12,9 @@ interface Reminder {
   remindAt: number
   eventId: string
   eventPubkey: string
+  eventKind: number
+  eventTags: string[]
   content: string
-  tags: string[]
 }
 
 interface CurrencyData {

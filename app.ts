@@ -681,8 +681,9 @@ const cmdRemind = async (systemData: SystemData, _userData: UserData, relay: Rel
         remindAt: reminderDate.getTime(),
         eventId: ev.id,
         eventPubkey: ev.pubkey,
+        eventKind: ev.kind,
+        eventTags: ev.tags.filter((x: any[]) => x[0] === 'e'),
         content: reminderContent,
-        tags: ev.tags.filter((x: any[]) => x[0] === 'e'),
       };
       reminderList.push(record);
       systemData.reminderList = reminderList;
@@ -1797,8 +1798,8 @@ const main = async () => {
           id: record.eventId,
           pubkey: record.eventPubkey,
 
-          kind: 1,
-          tags: record.tags || [],
+          kind: record.eventKind,
+          tags: record.eventTags || [],
           content: "",
           created_at: currUnixtime(),
           sig: "",
