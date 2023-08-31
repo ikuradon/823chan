@@ -1642,7 +1642,7 @@ const main = async () => {
     }
   });
 
-  const sub = relay.sub([{ "kinds": [1], "#p": [getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)], since: currUnixtime() }]);
+  const sub = relay.sub([{ "kinds": [1, 42], "#p": [getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)], since: currUnixtime() }]);
 
   sub.on("eose", async () => {
     console.log("****** EOSE ******");
