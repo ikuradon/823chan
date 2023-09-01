@@ -29,7 +29,7 @@
     "@types/node": "^20.5.4",
     "@types/node-cron": "^3.0.8",
     "@types/staticmaps": "^1.12.1",
-    "tsx": "^3.12.7"
+    "tsx": "^3.12.8"
   },
   "engines": {
     "node": ">=18"
