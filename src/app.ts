@@ -27,8 +27,8 @@ import * as emoji from "node-emoji";
 import StaticMaps from "staticmaps";
 
 
-import * as CONST from "./lib/const";
-import * as ENVIRONMENT from "./lib/environment";
+import * as CONST from "@/lib/const.js";
+import * as ENVIRONMENT from "@/lib/environment.js";
 
 /**
  *
@@ -68,7 +68,7 @@ const composeReplyPost = (content: string, targetEvent: Event) => {
  * @param {string} content
  * @param {Event} originalEvent オリジナルイベント
  */
-const composePost = (content: string, originalEvent: Event = null) => {
+const composePost = (content: string, originalEvent: Event | null = null) => {
   const kind = originalEvent != null ? originalEvent.kind : 1;
   const tags = [];
   if (originalEvent != null && originalEvent.kind == 42) {

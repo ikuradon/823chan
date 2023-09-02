@@ -13,7 +13,7 @@ interface Reminder {
   eventId: string
   eventPubkey: string
   eventKind: number
-  eventTags: string[]
+  eventTags: string[][]
   content: string
 }
 
