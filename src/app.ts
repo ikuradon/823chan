@@ -32,8 +32,8 @@ import * as CONST from "@/lib/const.js";
 import * as ENVIRONMENT from "@/lib/environment.js";
 
 /**
- *
- * @returns {number}
+ * 現在のUnixtimeを返す
+ * @returns {number} 現在のUnixtime
  */
 const currUnixtime = (): number => getUnixTime(new Date());
 
