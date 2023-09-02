@@ -25,6 +25,7 @@ import { MeiliSearch } from 'meilisearch';
 import * as cron from "node-cron";
 import * as emoji from "node-emoji";
 import StaticMaps from "staticmaps";
+import * as Sentry from "@sentry/node";
 
 
 import * as CONST from "@/lib/const.js";
@@ -39,6 +40,13 @@ const currUnixtime = (): number => getUnixTime(new Date());
 const START_TIME = currUnixtime();
 
 const redis = !!ENVIRONMENT.REDIS_URL ? new Redis(ENVIRONMENT.REDIS_URL) : null;
+
+if (!!ENVIRONMENT.SENTRY_URL) {
+  Sentry.init({
+    dsn: ENVIRONMENT.SENTRY_URL,
+    tracesSampleRate: 1.0,
+  });
+}
 
 /**
  * テキスト投稿イベント(リプライ)を組み立てる

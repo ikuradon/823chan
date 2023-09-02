@@ -15,3 +15,5 @@ export const CHEVERETO_BASE_URL = process.env.CHEVERETO_BASE_URL || "";
 export const HEALTHCHECK_URL = process.env.HEALTHCHECK_URL || "";
 
 export const REDIS_URL = process.env.REDIS_URL || "";
+
+export const SENTRY_URL = process.env.SENTRY_URL || "";
