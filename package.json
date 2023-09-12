@@ -34,7 +34,7 @@
     "@types/node": "^20.5.4",
     "@types/node-cron": "^3.0.8",
     "@types/staticmaps": "^1.12.1",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.6.0",
     "eslint": "^8.48.0",
     "eslint-config-prettier": "^9.0.0",
