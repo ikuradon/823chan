@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@api-types/jma-bosai": "^0.1.0",
-    "@types/node": "^20.5.4",
+    "@types/node": "^18",
     "@types/node-cron": "^3.0.8",
     "@types/staticmaps": "^1.12.1",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
