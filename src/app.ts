@@ -1870,6 +1870,8 @@ const cmdPushSetting = async (
       ? "NOTE"
       : (args[0] ?? "").match(/(dm|4)/i) != null
       ? "DM"
+      : (args[0] ?? "").match(/(channel|42)/i) != null
+      ? "CHANNEL_MESSAGE"
       : (args[0] ?? "").match(/(zap|9735)/i) != null
       ? "ZAP"
       : "";
@@ -1888,6 +1890,12 @@ const cmdPushSetting = async (
       const key = `push-${ev.pubkey}-4`;
       await redis?.set(key, Number(cmdBool));
       message = `DMの通知を${messageSuffix}`;
+      break;
+    }
+    case "CHANNEL_MESSAGE": {
+      const key = `push-${ev.pubkey}-42`;
+      await redis?.set(key, Number(cmdBool));
+      message = `GROUP CHATの通知を${messageSuffix}`;
       break;
     }
     case "ZAP": {
@@ -2021,7 +2029,7 @@ const cmdHelp = async (
     "(search) <キーワード> : 入力されたキーワードをリレーから検索します！\n";
 
   message +=
-    "(push) (dm|zap) (enable|disable|true|false|on|off|1|0): やぶみ通知の設定を変更します！\n";
+    "(push) (note|dm|channel|zap) (enable|disable|true|false|on|off|1|0): やぶみ通知の設定を変更します！\n";
 
   message +=
     "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n" +
