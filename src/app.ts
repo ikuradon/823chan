@@ -1851,6 +1851,80 @@ const cmdGeneratePassport = async (
 /**
  *
  * @param {SystemData} _systemData
+ * @param {UserData} userData
+ * @param {Relay} relay
+ * @param {Event} ev
+ * @returns {Promise<boolean>}
+ */
+const cmdPushSetting = async (
+  _systemData: SystemData,
+  _userData: UserData,
+  relay: Relay,
+  ev: Event,
+): Promise<boolean> => {
+  console.log("発火(通知設定): " + ev.content);
+
+  const args = ev.content.match(REGEX_PUSHSETTING)?.[2].split(" ") ?? [];
+  const command =
+    (args[0] ?? "").match(/(note|1)/i) != null
+      ? "NOTE"
+      : (args[0] ?? "").match(/(dm|4)/i) != null
+      ? "DM"
+      : (args[0] ?? "").match(/(zap|9735)/i) != null
+      ? "ZAP"
+      : "";
+  const cmdBool = checkBool(args.splice(1).join(" "));
+  let message = "";
+  const messageSuffix = cmdBool ? "有効化しました！" : "無効化しました！";
+
+  switch (command) {
+    case "NOTE": {
+      const key = `push-${ev.pubkey}-1`;
+      await redis?.set(key, Number(cmdBool));
+      message = `ノートの通知を${messageSuffix}`;
+      break;
+    }
+    case "DM": {
+      const key = `push-${ev.pubkey}-4`;
+      await redis?.set(key, Number(cmdBool));
+      message = `DMの通知を${messageSuffix}`;
+      break;
+    }
+    case "ZAP": {
+      const key = `push-${ev.pubkey}-9735`;
+      await redis?.set(key, Number(cmdBool));
+      message = `Zapの通知を${messageSuffix}`;
+      break;
+    }
+    default: {
+      message = "問題が発生しました…";
+    }
+  }
+
+  const replyPost = composeReplyPost(message, ev);
+  await publishToRelay(relay, replyPost);
+  return true;
+};
+
+/**
+ *
+ * @param {string|number} input
+ * @returns {boolean}
+ */
+const checkBool = (input: string | number): boolean => {
+  if (typeof input === "string") {
+    if (input.match(/^(enable|on|true|1)$/i) != null) {
+      return true;
+    } else if (input.match(/^(disable|off|false|0)$/i) != null) {
+      return false;
+    }
+  }
+  throw new Error("not valid input");
+};
+
+/**
+ *
+ * @param {SystemData} _systemData
  * @param {UserData} _userData
  * @param {Relay} relay
  * @param {Event} ev
@@ -1947,6 +2021,9 @@ const cmdHelp = async (
     "(search) <キーワード> : 入力されたキーワードをリレーから検索します！\n";
 
   message +=
+    "(push) (dm|zap) (enable|disable|true|false|on|off|1|0): やぶみ通知の設定を変更します！\n";
+
+  message +=
     "(info|情報) : あなたの統計情報をやぶみリレーから確認します！\n" +
     "(status|ステータス) : やぶみリレーの統計情報を表示します！\n" +
     "(help|ヘルプ|へるぷ) : このメッセージを表示します！\n";
@@ -2023,6 +2100,8 @@ const REGEX_PASSPORT = /(\bpassport\b|許可証|パス)/i;
 
 const REGEX_INFO = /(\binfo\b|情報)/i;
 const REGEX_STATUS = /(\bstatus\b|ステータス)/i;
+
+const REGEX_PUSHSETTING = /\b(push)\s(.+)/i;
 
 const REGEX_REBOOT = /(\breboot\b|再起動)/i;
 const REGEX_HELP = /(\bhelp\b|ヘルプ|へるぷ)/i;
@@ -2119,6 +2198,7 @@ const main = async (): Promise<void> => {
     [REGEX_SEARCH, true, cmdSearch],
     [REGEX_INFO, true, cmdInfo],
     [REGEX_STATUS, true, cmdStatus],
+    [REGEX_PUSHSETTING, true, cmdPushSetting],
     [REGEX_REBOOT, true, cmdReboot],
     [REGEX_HELP, false, cmdHelp],
   ];
