@@ -9,8 +9,8 @@ dependencies:
     specifier: ^7.66.0
     version: 7.66.0
   axios:
-    specifier: ^1.4.0
-    version: 1.5.0
+    specifier: ^1.6.1
+    version: 1.6.1
   chrono-node:
     specifier: ^2.7.0
     version: 2.7.0
@@ -928,8 +928,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /axios@1.5.0:
-    resolution: {integrity: sha512-D4DdjDo5CY50Qms0qGQTTw6Q44jl7zRwY7bthds06pUGfChBCTcQs+N743eFWGEd6pRTMd6A+I87aWyFV5wiZQ==}
+  /axios@1.6.1:
+    resolution: {integrity: sha512-vfBmhDpKafglh0EldBEbVuoe7DyAavGSLWhuSm5ZSEKQnHhBf0xAAwybbNH1IkrJNGnS/VG4I5yxig1pCEXE4g==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0
