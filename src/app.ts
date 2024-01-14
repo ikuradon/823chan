@@ -844,11 +844,18 @@ const cmdRemind = async (
     const reminderContent = (
       pos === -1 ? "" : reminderCommand.substring(pos + 3)
     ).trim();
-    const reminderDate = chrono.parseDate(reminderDateText) ?? fromUnixTime(0);
-
-    if (reminderDate < new Date()) {
-      reminderDate.setDate(reminderDate.getDate() + 1);
-    }
+    const reminderDate =
+      chrono.parseDate(
+        reminderDateText,
+        { instant: new Date() },
+        { forwardDate: true },
+      ) ??
+      chrono.parseDate(
+        `next ${reminderDateText}`,
+        { instant: new Date() },
+        { forwardDate: true },
+      ) ??
+      fromUnixTime(0);
 
     if (reminderDate > new Date()) {
       const record = {
