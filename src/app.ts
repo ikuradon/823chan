@@ -1863,7 +1863,7 @@ const cmdGeneratePassport = async (
 /**
  *
  * @param {SystemData} _systemData
- * @param {UserData} userData
+ * @param {UserData} _userData
  * @param {Relay} relay
  * @param {Event} ev
  * @returns {Promise<boolean>}
