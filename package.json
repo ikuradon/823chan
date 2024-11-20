@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@sentry/node": "^7.66.0",
-    "axios": "^1.4.0",
+    "axios": "^1.7.4",
     "chrono-node": "^2.7.4",
     "date-fns": "^3.2.0",
     "dotenv": "^16.3.1",
