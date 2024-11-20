@@ -68,10 +68,11 @@ const composeReplyPost = (content: string, targetEvent: Event): Event => {
   const tags = [];
   const eTags = targetEvent.tags.filter((x) => x[0] === "e");
   if (targetEvent.kind === 42) {
-    for (const tag of eTags)
-      tags.push(tag);
+    for (const tag of eTags) tags.push(tag);
   } else if (eTags.length > 0) {
-    tags.push(eTags.findLast(([, , , marker]) => marker === "root") ?? eTags[0]);
+    tags.push(
+      eTags.findLast(([, , , marker]) => marker === "root") ?? eTags[0],
+    );
   }
   tags.push(["e", targetEvent.id], ["p", targetEvent.pubkey]);
   // eslint-disable-next-line @typescript-eslint/naming-convention
