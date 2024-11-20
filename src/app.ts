@@ -2137,6 +2137,11 @@ const main = async (): Promise<void> => {
     process.exit(0);
   });
 
+  relay.on("disconnect", () => {
+    console.error("切断されました…");
+    process.exit(0);
+  });
+
   await relay.connect();
   console.log("リレーに接続しました");
 
