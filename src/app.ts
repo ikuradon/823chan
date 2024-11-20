@@ -631,12 +631,12 @@ const cmdFiatConv = async (
     (args[0] ?? "").match(/(yen|jpy)/i) != null
       ? "jpy"
       : (args[0] ?? "").match(/(dollar|usd)/i) != null
-      ? "usd"
-      : (args[0] ?? "").match(/(sat)/i) != null
-      ? "sat"
-      : (args[0] ?? "").match(/(btc|bitcoin)/i) != null
-      ? "btc"
-      : "";
+        ? "usd"
+        : (args[0] ?? "").match(/(sat)/i) != null
+          ? "sat"
+          : (args[0] ?? "").match(/(btc|bitcoin)/i) != null
+            ? "btc"
+            : "";
   const price = Number(args.splice(1).join(" "));
 
   const updateAt = format(
@@ -915,8 +915,8 @@ const cmdLocation = async (
     ev.content.match(REGEX_LOCATION) != null
       ? ev.content.match(REGEX_LOCATION)?.[2]
       : ev.content.match(REGEX_LOCATION_ALT) != null
-      ? ev.content.match(REGEX_LOCATION_ALT)?.[1]
-      : "";
+        ? ev.content.match(REGEX_LOCATION_ALT)?.[1]
+        : "";
   let message = "わかりませんでした…";
   if (location !== undefined && location.length !== 0) {
     const geoDataItems = await getLocation(location);
@@ -1881,12 +1881,12 @@ const cmdPushSetting = async (
     (args[0] ?? "").match(/(note|1)/i) != null
       ? "NOTE"
       : (args[0] ?? "").match(/(dm|4)/i) != null
-      ? "DM"
-      : (args[0] ?? "").match(/(channel|42)/i) != null
-      ? "CHANNEL_MESSAGE"
-      : (args[0] ?? "").match(/(zap|9735)/i) != null
-      ? "ZAP"
-      : "";
+        ? "DM"
+        : (args[0] ?? "").match(/(channel|42)/i) != null
+          ? "CHANNEL_MESSAGE"
+          : (args[0] ?? "").match(/(zap|9735)/i) != null
+            ? "ZAP"
+            : "";
   const cmdBool = checkBool(args.splice(1).join(" "));
   let message = "";
   const messageSuffix = cmdBool ? "有効化しました！" : "無効化しました！";
