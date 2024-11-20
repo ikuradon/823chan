@@ -51,6 +51,12 @@ importers:
       '@api-types/jma-bosai':
         specifier: ^0.1.0
         version: 0.1.0
+      '@eslint/eslintrc':
+        specifier: ^3.2.0
+        version: 3.2.0
+      '@eslint/js':
+        specifier: ^9.15.0
+        version: 9.15.0
       '@types/node':
         specifier: ^22.9.1
         version: 22.9.1
@@ -87,6 +93,9 @@ importers:
       eslint-plugin-promise:
         specifier: ^7.1.0
         version: 7.1.0(eslint@9.15.0)
+      globals:
+        specifier: ^15.12.0
+        version: 15.12.0
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
