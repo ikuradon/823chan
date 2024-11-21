@@ -74,7 +74,6 @@ const composeReplyPost = (content: string, targetEvent: Event): Event => {
     );
   }
   tags.push(["e", targetEvent.id], ["p", targetEvent.pubkey]);
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const created_at: number =
     targetEvent !== null ? targetEvent.created_at + 1 : currUnixtime() + 1;
   const ev = {
@@ -105,7 +104,6 @@ const composePost = (
     for (const tag of originalEvent.tags.filter((x: any[]) => x[0] === "e"))
       tags.push(tag);
   }
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const created_at: number =
     originalEvent != null ? originalEvent.created_at + 1 : currUnixtime() + 1;
   const ev = {
@@ -175,7 +173,6 @@ const strfryScan = async (filter: Filter): Promise<string[]> => {
     execOpts,
   );
   const rl = readline.createInterface({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     input: strfryProcess.stdout!,
     crlfDelay: Infinity,
   });
@@ -240,14 +237,11 @@ const bcGetOutput = async (input: string): Promise<string> => {
   setTimeout(() => strfryProcess.kill(15), TIMEOUT);
 
   const rl = readline.createInterface({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     input: strfryProcess.stdout!,
     crlfDelay: Infinity,
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   strfryProcess.stdin!.write(`${input}\n`);
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   strfryProcess.stdin!.end();
 
   let output = "";
@@ -290,7 +284,6 @@ const lastReplyTimePerPubkey = new Map();
  * @returns {boolean}
  */
 const isSafeToReply = (event: Event): boolean => {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   const { pubkey, created_at } = event;
   const now = currUnixtime();
   if (created_at < now - COOL_TIME_DUR_SEC) {
@@ -627,7 +620,6 @@ const cmdFiatConv = async (
   ev: Event,
 ): Promise<boolean> => {
   console.log("発火(通貨変換): " + ev.content);
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const currencyData = systemData.currencyData ?? ({} as CurrencyData);
 
   const args = ev.content.match(REGEX_FIATCONV)?.[2].split(" ") ?? [];
@@ -697,7 +689,6 @@ const cmdSatConv = async (
   relay: Relay,
   ev: Event,
 ): Promise<boolean> => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const currencyData = systemData.currencyData ?? ({} as CurrencyData);
   if (currencyData.updateAt === 0) return false;
 
@@ -730,7 +721,6 @@ const cmdJpyConv = async (
   relay: Relay,
   ev: Event,
 ): Promise<boolean> => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const currencyData = systemData.currencyData ?? ({} as CurrencyData);
   if (currencyData.updateAt === 0) return false;
 
@@ -763,7 +753,6 @@ const cmdUsdConv = async (
   relay: Relay,
   ev: Event,
 ): Promise<boolean> => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const currencyData = systemData.currencyData ?? ({} as CurrencyData);
   if (currencyData.updateAt === 0) return false;
 
@@ -813,7 +802,6 @@ const cmdRemind = async (
       message += "見つかりませんでした…";
     } else {
       filteredList.forEach((record) => {
-        // eslint-disable-next-line prettier/prettier
         const notifyDate = format(
           new Date(record.remindAt),
           "yyyy-MM-dd HH:mm",
@@ -1036,7 +1024,6 @@ const messageWeatherForecast = async (location: string): Promise<string> => {
     }
 
     const area = forecastLongAreas[arrayId];
-    // eslint-disable-next-line prettier/prettier
     message += `${format(
       new Date(forecastsShort[0].timeDefines[0]),
       "yyyy-MM-dd",
@@ -1044,7 +1031,6 @@ const messageWeatherForecast = async (location: string): Promise<string> => {
       forecastsShort[0].areas[arrayId].weathers[0]
     }\n`;
     message += `降水確率: ${[...forecastShortPops].slice(0, 4).join(" / ")}\n`;
-    // eslint-disable-next-line prettier/prettier
     message += `${format(
       new Date(forecastsShort[0].timeDefines[1]),
       "yyyy-MM-dd",
@@ -1056,7 +1042,6 @@ const messageWeatherForecast = async (location: string): Promise<string> => {
     message += "---------------\n";
 
     for (let i = 2; i < timeDefinesLong.length; i++) {
-      // eslint-disable-next-line prettier/prettier
       message += `${format(new Date(timeDefinesLong[i]), "yyyy-MM-dd")} (${
         area.weather.reliabilities[i]
       }) ${area.amedas.tempsMin[i]}/${area.amedas.tempsMax[i]} ${
@@ -1148,7 +1133,6 @@ const messageWeatherMap = async (): Promise<string> => {
 const messageWeatherHimawari = async (
   systemData: SystemData,
 ): Promise<string> => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const himawariCache = systemData.himawariCache ?? ({} as HimawariCache);
   let message = "";
 
@@ -2240,7 +2224,6 @@ const main = async (): Promise<void> => {
       console.log("なんかきた: " + ev.content);
       let wFlag = false;
       const userData =
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         (memoryData.get(ev.pubkey) as UserData) ?? ({} as UserData);
 
       for (const command of commands) {
@@ -2278,7 +2261,6 @@ const main = async (): Promise<void> => {
     process.exit(0); // プロセスを正常終了させる
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   cron.schedule("0 0 * * *", async () => {
     console.log("ランキング生成");
     const currentDay = new Date(new Date().setHours(0, 0, 0, 0));
@@ -2350,7 +2332,6 @@ const main = async (): Promise<void> => {
   cron.schedule("*/5 * * * *", () => {
     // https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=jpy
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const currencyData = systemData.currencyData ?? ({} as CurrencyData);
 
     axios
@@ -2393,7 +2374,6 @@ const main = async (): Promise<void> => {
       });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   cron.schedule("*/30 * * * * *", async () => {
     try {
       const reminderList = systemData.reminderList ?? [];
