@@ -26,8 +26,7 @@
     "node-cron": "^3.0.3",
     "node-emoji": "^2.1.3",
     "nostr-tools": "^1.17.0",
-    "staticmaps": "^1.13.1",
-    "websocket-polyfill": "^1.0.0"
+    "staticmaps": "^1.13.1"
   },
   "devDependencies": {
     "@api-types/jma-bosai": "^0.1.0",

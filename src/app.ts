@@ -9,7 +9,6 @@ import {
   type Filter,
   type Relay,
 } from "nostr-tools";
-import "websocket-polyfill";
 
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
