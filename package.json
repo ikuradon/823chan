@@ -15,7 +15,7 @@
     "lint": "eslint --ext .ts src"
   },
   "dependencies": {
-    "@sentry/node": "^8.42.0",
+    "@sentry/node": "^8.48.0",
     "axios": "^1.7.9",
     "chrono-node": "^2.7.7",
     "date-fns": "^4.1.0",
