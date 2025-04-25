@@ -1,19 +1,4 @@
-import {
-  finishEvent,
-  getPublicKey,
-  nip19,
-  relayInit,
-  validateEvent,
-  verifySignature,
-  type Event,
-  type Filter,
-  type Relay,
-} from "nostr-tools";
-
-import * as childProcess from "node:child_process";
-import * as fs from "node:fs";
-import * as readline from "node:readline";
-
+import { hexToBytes } from "@noble/hashes/utils";
 import * as Sentry from "@sentry/node";
 import axios from "axios";
 import * as chrono from "chrono-node";
@@ -34,10 +19,21 @@ import { Redis } from "ioredis";
 import { MeiliSearch } from "meilisearch";
 import * as cron from "node-cron";
 import * as emoji from "node-emoji";
+import * as childProcess from "node:child_process";
+import * as fs from "node:fs";
+import * as readline from "node:readline";
+import { type Event } from "nostr-tools/core";
+import { type Filter } from "nostr-tools/filter";
+import * as nip19 from "nostr-tools/nip19";
+import { finalizeEvent, getPublicKey, verifyEvent } from "nostr-tools/pure";
+import { Relay, useWebSocketImplementation } from "nostr-tools/relay";
 import StaticMaps from "staticmaps";
+import WebSocket from "ws";
+useWebSocketImplementation(WebSocket);
 
 import * as CONST from "@/lib/const.js";
 import * as ENVIRONMENT from "@/lib/environment.js";
+const BOT_PRIVATE_KEY = hexToBytes(ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
 
 /**
  * 現在のUnixtimeを返す
@@ -84,7 +80,7 @@ const composeReplyPost = (content: string, targetEvent: Event): Event => {
   };
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
+  return finalizeEvent(ev, BOT_PRIVATE_KEY);
 };
 
 /**
@@ -114,7 +110,7 @@ const composePost = (
   };
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
+  return finalizeEvent(ev, BOT_PRIVATE_KEY);
 };
 
 /**
@@ -135,7 +131,7 @@ const composeReaction = (emoji: string, targetEvent: Event): Event => {
   };
 
   // イベントID(ハッシュ値)計算・署名
-  return finishEvent(ev, ENVIRONMENT.BOT_PRIVATE_KEY_HEX);
+  return finalizeEvent(ev, BOT_PRIVATE_KEY);
 };
 
 /**
@@ -1503,7 +1499,7 @@ const cmdInfo = async (
     console.log(metadata);
     let userName;
     let message;
-    if (validateEvent(metadata) && verifySignature(metadata)) {
+    if (verifyEvent(metadata)) {
       const userInfo = JSON.parse(metadata.content);
       userName = userInfo.display_name ?? userInfo.displayName ?? undefined;
     }
@@ -2119,67 +2115,44 @@ const main = async (): Promise<void> => {
   const memoryData = loadMemory();
   const systemData: SystemData = (memoryData.get("_") as SystemData) ?? {};
 
-  const relay = relayInit(ENVIRONMENT.RELAY_URL);
-  relay.on("error", () => {
-    console.error("接続に失敗…");
-    process.exit(0);
-  });
-
-  relay.on("disconnect", () => {
-    console.error("切断されました…");
-    process.exit(0);
-  });
-
-  await relay.connect();
+  const relay = await Relay.connect(ENVIRONMENT.RELAY_URL);
   console.log("リレーに接続しました");
 
-  const subAll = relay.sub([{ kinds: [1, 42], since: currUnixtime() }]);
-  subAll.on("event", async (ev) => {
-    if (ev.pubkey === getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)) return; // 自分の投稿は無視する
+  relay.subscribe([{ kinds: [1, 42], since: currUnixtime() }], {
+    async onevent(ev) {
+      if (ev.pubkey === getPublicKey(BOT_PRIVATE_KEY)) return; // 自分の投稿は無視する
 
-    if (systemData.responseTimer === undefined) systemData.responseTimer = 0;
-    let responseFlag = false;
-    const timerDuration = currUnixtime() - systemData.responseTimer;
-    const COOLDOWN_TIMER = 30;
-    if (timerDuration >= COOLDOWN_TIMER) {
-      if (ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i) != null) {
-        responseFlag = true;
-        const post = composePost("👋", ev);
-        await publishToRelay(relay, post);
-      } else if (
-        ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i) != null
-      ) {
-        responseFlag = true;
-        const message = "＼ﾊｰｲ!🙌／";
-        const post = (() => {
-          if (
-            ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i) !=
-            null
-          )
-            return composeReplyPost(message, ev);
-          else return composePost(message, ev);
-        })();
+      if (systemData.responseTimer === undefined) systemData.responseTimer = 0;
+      let responseFlag = false;
+      const timerDuration = currUnixtime() - systemData.responseTimer;
+      const COOLDOWN_TIMER = 30;
+      if (timerDuration >= COOLDOWN_TIMER) {
+        if (
+          ev.content.match(/^(823|823chan|やぶみちゃん|やぶみん)$/i) != null
+        ) {
+          responseFlag = true;
+          const post = composePost("👋", ev);
+          await publishToRelay(relay, post);
+        } else if (
+          ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)/i) != null
+        ) {
+          responseFlag = true;
+          const message = "＼ﾊｰｲ!🙌／";
+          const post = (() => {
+            if (
+              ev.content.match(/(ヤッブミーン|ﾔｯﾌﾞﾐｰﾝ|やっぶみーん)(!|！)/i) !=
+              null
+            )
+              return composeReplyPost(message, ev);
+            else return composePost(message, ev);
+          })();
 
-        await publishToRelay(relay, post);
+          await publishToRelay(relay, post);
+        }
+
+        if (responseFlag) systemData.responseTimer = currUnixtime();
       }
-
-      if (responseFlag) systemData.responseTimer = currUnixtime();
-    }
-  });
-
-  const sub = relay.sub([
-    {
-      kinds: [1, 42],
-      "#p": [getPublicKey(ENVIRONMENT.BOT_PRIVATE_KEY_HEX)],
-      since: currUnixtime(),
     },
-  ]);
-
-  sub.on("eose", async () => {
-    console.log("****** EOSE ******");
-    const duration = (currUnixtime() - START_TIME) / 1000;
-    const post = composePost("準備完了！\nduration: " + duration + "sec.");
-    await publishToRelay(relay, post);
   });
 
   // 0: Regexp pattern
@@ -2216,30 +2189,47 @@ const main = async (): Promise<void> => {
     [REGEX_HELP, false, cmdHelp],
   ];
 
-  sub.on("event", async (ev) => {
-    try {
-      // リプライしても安全なら、リプライイベントを組み立てて送信する
-      if (!isSafeToReply(ev)) return;
+  relay.subscribe(
+    [
+      {
+        kinds: [1, 42],
+        "#p": [getPublicKey(BOT_PRIVATE_KEY)],
+        since: currUnixtime(),
+      },
+    ],
+    {
+      async onevent(ev) {
+        try {
+          // リプライしても安全なら、リプライイベントを組み立てて送信する
+          if (!isSafeToReply(ev)) return;
 
-      console.log("なんかきた: " + ev.content);
-      let wFlag = false;
-      const userData =
-        (memoryData.get(ev.pubkey) as UserData) ?? ({} as UserData);
+          console.log("なんかきた: " + ev.content);
+          let wFlag = false;
+          const userData =
+            (memoryData.get(ev.pubkey) as UserData) ?? ({} as UserData);
 
-      for (const command of commands) {
-        if (ev.content.match(command[0]) === null) continue;
-        if (!(command[1] as boolean) && wFlag) continue;
-        wFlag = await command[2](systemData, userData, relay, ev);
-      }
+          for (const command of commands) {
+            if (ev.content.match(command[0]) === null) continue;
+            if (!(command[1] as boolean) && wFlag) continue;
+            wFlag = await command[2](systemData, userData, relay, ev);
+          }
 
-      if (!wFlag) await cmdUnknown(systemData, userData, relay, ev);
+          if (!wFlag) await cmdUnknown(systemData, userData, relay, ev);
 
-      memoryData.set(ev.pubkey, userData);
-      memoryData.set("_", systemData);
-    } catch (err) {
-      console.error(err);
-    }
-  });
+          memoryData.set(ev.pubkey, userData);
+          memoryData.set("_", systemData);
+        } catch (err) {
+          console.error(err);
+        }
+      },
+      async oneose() {
+        console.log("****** EOSE ******");
+        const duration = (currUnixtime() - START_TIME) / 1000;
+        const post = composePost("準備完了！\nduration: " + duration + "sec.");
+        await publishToRelay(relay, post);
+      },
+    },
+  );
 
   // exit時
   process.on("exit", () => {
