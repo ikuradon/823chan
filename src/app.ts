@@ -14,7 +14,6 @@ import {
   subSeconds,
   subWeeks,
 } from "date-fns";
-import FormData from "form-data";
 import { Redis } from "ioredis";
 import { MeiliSearch } from "meilisearch";
 import * as cron from "node-cron";
@@ -1201,7 +1200,6 @@ const uploadToChevereto = async (
   const config = {
     headers: {
       "X-API-Key": ENVIRONMENT.CHEVERETO_API_KEY,
-      ...form.getHeaders(),
     },
   };
 
