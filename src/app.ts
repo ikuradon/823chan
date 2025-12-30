@@ -1,4 +1,4 @@
-import { hexToBytes } from "@noble/hashes/utils";
+import { hexToBytes } from "@noble/hashes/utils.js";
 import * as Sentry from "@sentry/node";
 import axios from "axios";
 import * as chrono from "chrono-node";
@@ -2118,7 +2118,12 @@ const main = async (): Promise<void> => {
   const memoryData = loadMemory();
   const systemData: SystemData = (memoryData.get("_") as SystemData) ?? {};
 
-  const relay = await Relay.connect(ENVIRONMENT.RELAY_URL);
+  const relay = new Relay(ENVIRONMENT.RELAY_URL, {
+    enablePing: true,
+    enableReconnect: true,
+  });
+
+  await relay.connect();
   console.log("リレーに接続しました");
 
   relay.subscribe([{ kinds: [1, 42], since: currUnixtime() }], {

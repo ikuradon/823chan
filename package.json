@@ -15,40 +15,40 @@
     "lint": "eslint --ext .ts src"
   },
   "dependencies": {
-    "@noble/hashes": "^1.8.0",
-    "@sentry/node": "^9.14.0",
-    "axios": "^1.9.0",
-    "chrono-node": "^2.8.0",
+    "@noble/hashes": "^2.0.1",
+    "@sentry/node": "^10.32.1",
+    "axios": "^1.13.2",
+    "chrono-node": "^2.9.0",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.5.0",
-    "ioredis": "^5.6.1",
-    "meilisearch": "^0.50.0",
-    "node-cron": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "ioredis": "^5.8.2",
+    "meilisearch": "^0.54.0",
+    "node-cron": "^4.2.1",
     "node-emoji": "^2.2.0",
-    "nostr-tools": "^2.12.0",
+    "nostr-tools": "^2.19.4",
     "staticmaps": "^1.13.1",
-    "ws": "^8.18.1"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@api-types/jma-bosai": "^0.1.0",
-    "@eslint/js": "^9.25.1",
-    "@types/node": "^22.15.2",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.3",
     "@types/node-cron": "^3.0.11",
     "@types/staticmaps": "^1.12.5",
     "@types/ws": "^8.18.1",
-    "eslint": "^9.25.1",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.6",
-    "globals": "^16.0.0",
-    "prettier": "^3.5.3",
-    "tsc-alias": "^1.8.15",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.0"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.51.0"
   },
   "packageManager": "pnpm@9.14.4",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   }
 }
